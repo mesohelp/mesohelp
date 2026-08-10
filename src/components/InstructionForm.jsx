@@ -3,9 +3,7 @@ import { AppContext } from '../context/AppContext';
 import { Video, Image as ImageIcon, Type, Trash2, Loader2 } from 'lucide-react';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { storage } from '../firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
+// Media files are now uploaded via the custom PHP API
 const Font = Quill.import('formats/font');
 const customFonts = ['arial', 'comic-sans', 'courier-new', 'georgia', 'helvetica', 'tahoma', 'times-new-roman', 'verdana'];
 Font.whitelist = customFonts;
@@ -98,16 +96,28 @@ const InstructionForm = ({ instructionId, onClose }) => {
         if ((section.type === 'image' || section.type === 'video') && section.file) {
           try {
             const file = section.file;
-            const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-            const storageRef = ref(storage, `instructions/${Date.now()}_${safeName}`);
+            const formData = new FormData();
+            formData.append('file', file);
             
-            await uploadBytes(storageRef, file);
-            const downloadUrl = await getDownloadURL(storageRef);
+            const response = await fetch('https://www.mesopotamia.ro/mesohelp/upload.php', {
+              method: 'POST',
+              body: formData
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Upload failed cu status ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.url) {
+              throw new Error('Eroare: URL-ul lipsește din răspunsul serverului.');
+            }
             
             return {
               id: section.id,
               type: section.type,
-              content: downloadUrl,
+              content: data.url,
               description: section.description || ''
             };
           } catch (uploadError) {
