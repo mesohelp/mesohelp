@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { Loader2 } from 'lucide-react';
-import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import CategoryView from './pages/CategoryView';
@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <HashRouter>
+    <BrowserRouter basename="/mesohelp/">
       <Navbar />
       <main className="bg-[#F5F4EF] min-h-screen">
         <Routes>
@@ -50,7 +50,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
