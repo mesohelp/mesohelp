@@ -11,7 +11,7 @@ const InstructionDetail = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-5rem)] w-full">
-        <Loader2 className="w-10 h-10 text-[#1D5337] animate-spin" />
+        <Loader2 className="w-10 h-10 text-mesored animate-spin" />
       </div>
     );
   }
@@ -52,7 +52,8 @@ const InstructionDetail = () => {
     <div className="max-w-4xl mx-auto p-4 md:p-8 animate-slide-up">
       <button 
         onClick={() => navigate(-1)} 
-        className="flex items-center justify-center bg-white border border-gray-200 rounded-xl p-2 md:p-2.5 hover:bg-gray-50 transition-all shadow-sm text-[#0A2B1C] mb-6 select-none [-webkit-touch-callout:none] active:scale-[0.97] w-fit"
+        className="flex items-center justify-center bg-white border border-gray-200 rounded-xl p-2 md:p-2.5 hover:bg-gray-50 transition-all shadow-sm text-gray-900 mb-6 select-none [-webkit-touch-callout:none] active:scale-[0.97] w-fit"
+        title="Înapoi"
       >
         <ArrowLeft className="w-5 h-5" />
       </button>
@@ -91,7 +92,7 @@ const InstructionDetail = () => {
                       <img src={section.content} alt={`Imagine ${index}`} className="w-full h-auto rounded-xl" />
                     </div>
                     {section.description && (
-                      <p className="mt-3 text-gray-600 text-sm italic border-l-4 border-[#1D5337] pl-3 py-1 bg-gray-50 rounded-r-lg">
+                      <p className="mt-3 text-gray-600 text-sm italic border-l-4 border-mesored pl-3 py-1 bg-gray-50 rounded-r-lg">
                         {section.description}
                       </p>
                     )}
@@ -105,7 +106,7 @@ const InstructionDetail = () => {
                       {renderVideo(section.content)}
                     </div>
                     {section.description && (
-                      <p className="mt-3 text-gray-600 text-sm italic border-l-4 border-[#1D5337] pl-3 py-1 bg-gray-50 rounded-r-lg">
+                      <p className="mt-3 text-gray-600 text-sm italic border-l-4 border-mesored pl-3 py-1 bg-gray-50 rounded-r-lg">
                         {section.description}
                       </p>
                     )}

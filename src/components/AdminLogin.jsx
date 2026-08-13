@@ -32,11 +32,11 @@ const AdminLogin = () => {
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-gray-50 flex flex-col pt-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <div className="bg-meso-dark text-meso-lime p-3 rounded-2xl shadow-lg mb-4">
+        <div className="bg-mesolight text-mesored p-3 rounded-2xl shadow-lg mb-4">
           <Shield size={32} />
         </div>
-        <h2 className="text-center text-3xl font-extrabold text-meso-dark tracking-tight">
-          Autentificare <span className="text-meso-dark/80">Admin</span>
+        <h2 className="text-center text-3xl font-extrabold text-gray-900 tracking-tight">
+          Autentificare <span className="text-mesored">Admin</span>
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 mb-8">
           Acces restricționat panou de administrare
@@ -44,7 +44,7 @@ const AdminLogin = () => {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl shadow-meso-dark/5 sm:rounded-2xl sm:px-10 border border-gray-100">
+        <div className="bg-white py-8 px-4 shadow-xl shadow-gray-200 sm:rounded-2xl sm:px-10 border border-gray-100">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
@@ -66,7 +66,7 @@ const AdminLogin = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-meso-dark focus:border-meso-dark sm:text-sm outline-none transition-all"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-mesored focus:border-mesored sm:text-sm outline-none transition-all"
                   placeholder="Introduceți emailul"
                 />
               </div>
@@ -86,7 +86,7 @@ const AdminLogin = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-meso-dark focus:border-meso-dark sm:text-sm outline-none transition-all"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-mesored focus:border-mesored sm:text-sm outline-none transition-all"
                   placeholder="••••••••"
                 />
               </div>
@@ -95,7 +95,7 @@ const AdminLogin = () => {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-meso-dark bg-meso-lime hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-meso-dark transition-all"
+                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-mesored hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mesored transition-all"
               >
                 Autentificare Administrator
               </button>

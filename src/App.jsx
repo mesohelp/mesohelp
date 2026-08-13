@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { Loader2 } from 'lucide-react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
 import CategoryView from './pages/CategoryView';
 import InstructionDetail from './pages/InstructionDetail';
@@ -16,7 +17,7 @@ const ProtectedRoute = ({ children }) => {
   if (authLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-[calc(100vh-5rem)]">
-        <Loader2 className="w-10 h-10 text-[#1D5337] animate-spin mb-4" />
+        <Loader2 className="w-10 h-10 text-mesored animate-spin mb-4" />
         <p className="text-gray-500 font-medium animate-pulse">Se verifică autentificarea...</p>
       </div>
     );
@@ -31,9 +32,9 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <BrowserRouter basename="/mesohelp/">
+    <BrowserRouter>
       <Navbar />
-      <main className="bg-[#F5F4EF] min-h-screen">
+      <main className="bg-mesobg min-h-screen pb-20 md:pb-0">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/category/:categoryName" element={<CategoryView />} />
@@ -50,6 +51,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <BottomNav />
     </BrowserRouter>
   );
 }

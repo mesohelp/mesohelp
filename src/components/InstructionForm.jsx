@@ -99,7 +99,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
             const formData = new FormData();
             formData.append('file', file);
             
-            const response = await fetch('https://www.mesopotamia.ro/mesohelp/upload.php', {
+            const response = await fetch('https://support.mesopotamia.ro/upload.php', {
               method: 'POST',
               body: formData
             });
@@ -168,7 +168,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 focus:bg-white focus:border-[#0A2B1C] focus:ring-2 focus:ring-[#1D5337]/50 transition-all outline-none"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 focus:bg-white focus:border-mesored focus:ring-2 focus:ring-mesored/50 transition-all outline-none"
               placeholder="Ex: Cum se schimbă rola..."
             />
           </div>
@@ -178,7 +178,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
               <button
                 type="button"
                 onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-left focus:bg-white focus:border-[#0A2B1C] focus:ring-2 focus:ring-[#1D5337]/50 transition-all outline-none flex justify-between items-center"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-left focus:bg-white focus:border-mesored focus:ring-2 focus:ring-mesored/50 transition-all outline-none flex justify-between items-center"
               >
                 <span>{category}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform text-gray-500 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`}>
@@ -195,7 +195,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
                         setCategory(cat);
                         setIsCategoryDropdownOpen(false);
                       }}
-                      className={`px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors ${category === cat ? 'bg-[#F5F4EF] font-semibold text-[#0A2B1C]' : 'text-gray-700'}`}
+                      className={`px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors ${category === cat ? 'bg-mesobg font-semibold text-gray-900' : 'text-gray-700'}`}
                     >
                       {cat}
                     </li>
@@ -265,7 +265,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
                         className="hidden" 
                         onChange={(e) => handleFileUpload(e, section.id)} 
                       />
-                      <label htmlFor={`file-${section.id}`} className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#1D5337] hover:bg-white transition-colors">
+                      <label htmlFor={`file-${section.id}`} className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-mesored hover:bg-white transition-colors">
                         <span className="text-gray-500 font-medium">Apasă pentru a încărca o imagine</span>
                       </label>
                     </>
@@ -274,7 +274,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
                       <img src={section.content} alt="Preview" className="max-h-64 object-contain inline-block w-auto" />
                     </div>
                   )}
-                  <input type="text" placeholder="Adaugă o descriere opțională..." value={section.description || ''} onChange={(e) => updateSectionDescription(section.id, e.target.value)} className="w-full mt-3 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#0A2B1C] focus:ring-2 focus:ring-[#1D5337]/50" />
+                  <input type="text" placeholder="Adaugă o descriere opțională..." value={section.description || ''} onChange={(e) => updateSectionDescription(section.id, e.target.value)} className="w-full mt-3 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-mesored focus:ring-2 focus:ring-mesored/50" />
                 </div>
               )}
 
@@ -290,7 +290,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
                         className="hidden" 
                         onChange={(e) => handleFileUpload(e, section.id)} 
                       />
-                      <label htmlFor={`file-${section.id}`} className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#1D5337] hover:bg-white transition-colors">
+                      <label htmlFor={`file-${section.id}`} className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-mesored hover:bg-white transition-colors">
                         <span className="text-gray-500 font-medium">Apasă pentru a încărca un video (.mp4, .webm)</span>
                       </label>
                     </>
@@ -299,7 +299,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
                       <video src={section.content} controls className="w-full h-48 object-contain" />
                     </div>
                   )}
-                  <input type="text" placeholder="Adaugă o descriere opțională..." value={section.description || ''} onChange={(e) => updateSectionDescription(section.id, e.target.value)} className="w-full mt-3 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#0A2B1C] focus:ring-2 focus:ring-[#1D5337]/50" />
+                  <input type="text" placeholder="Adaugă o descriere opțională..." value={section.description || ''} onChange={(e) => updateSectionDescription(section.id, e.target.value)} className="w-full mt-3 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-mesored focus:ring-2 focus:ring-mesored/50" />
                 </div>
               )}
               </div>
@@ -327,7 +327,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
           <button type="button" onClick={() => setShowCancelModal(true)} className="px-5 py-2.5 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors">
             Anulează
           </button>
-          <button type="submit" disabled={isSaving} className="px-5 py-2.5 rounded-xl font-medium bg-[#0A2B1C] text-white hover:bg-[#00301a] shadow-sm transition-colors disabled:opacity-70 flex items-center gap-2">
+          <button type="submit" disabled={isSaving} className="px-5 py-2.5 rounded-xl font-medium bg-mesored text-white hover:bg-red-800 shadow-sm transition-colors disabled:opacity-70 flex items-center gap-2">
             {isSaving && <Loader2 size={18} className="animate-spin" />}
             {instructionId ? 'Salvează Modificările' : 'Salvează Instrucțiunea'}
           </button>
@@ -337,7 +337,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-100">
-            <h3 className="text-xl font-bold text-[#0A2B1C] mb-2">Modificări nesalvate</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Modificări nesalvate</h3>
             <p className="text-gray-600 mb-6 text-sm">
               Ești sigur că vrei să închizi? Modificările făcute nu vor fi salvate și se vor pierde.
             </p>

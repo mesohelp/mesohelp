@@ -9,7 +9,7 @@ import { db } from '../firebase';
 const CategoryView = () => {
   const { categoryName } = useParams();
   const navigate = useNavigate();
-  const { instructions, setInstructions, isAdmin, loading } = useContext(AppContext);
+  const { instructions, setInstructions, isAdmin, loading, searchQuery } = useContext(AppContext);
   
   const [localInstructions, setLocalInstructions] = useState([]);
   const [localLoading, setLocalLoading] = useState(false);
@@ -35,16 +35,23 @@ const CategoryView = () => {
     }
   }, [loading, instructions.length, categoryName]);
 
-  const displayInstructions = instructions.length > 0 
+  const safeSearchQuery = (searchQuery || "").toLowerCase();
+  
+  const baseInstructions = instructions.length > 0 
     ? instructions.filter(i => i.category === categoryName)
     : localInstructions;
+
+  const displayInstructions = baseInstructions.filter(inst =>
+    inst?.title?.toLowerCase().includes(safeSearchQuery) || 
+    inst?.content?.toLowerCase().includes(safeSearchQuery)
+  );
 
   const isLoading = loading || localLoading;
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-5rem)] w-full">
-        <Loader2 className="w-10 h-10 text-[#1D5337] animate-spin" />
+        <Loader2 className="w-10 h-10 text-mesored animate-spin" />
       </div>
     );
   }
@@ -57,10 +64,10 @@ const CategoryView = () => {
     <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="flex items-center justify-center bg-white border border-gray-200 rounded-xl p-2 md:p-2.5 hover:bg-gray-50 transition-all shadow-sm text-[#0A2B1C] select-none [-webkit-touch-callout:none] active:scale-[0.97] w-fit">
+          <button onClick={() => navigate(-1)} className="flex items-center justify-center bg-white border border-gray-200 rounded-xl p-2 md:p-2.5 hover:bg-gray-50 transition-all shadow-sm text-gray-900 select-none [-webkit-touch-callout:none] active:scale-[0.97] w-fit">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#0A2B1C]">Instrucțiuni {categoryName}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Instrucțiuni {categoryName}</h1>
         </div>
         
         {isAdmin && (
@@ -78,7 +85,7 @@ const CategoryView = () => {
                 </button>
                 <button 
                   onClick={() => setIsReordering(false)} 
-                  className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-[#1D5337] text-white hover:bg-[#16402a]"
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-mesored text-white hover:bg-red-800"
                 >
                   Salvează Ordinea
                 </button>
@@ -89,7 +96,7 @@ const CategoryView = () => {
                   setBackupInstructions([...instructions]);
                   setIsReordering(true);
                 }} 
-                className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-white border border-gray-200 text-[#0A2B1C] hover:bg-gray-50"
+                className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-white border border-gray-200 text-gray-900 hover:bg-gray-50"
               >
                 Reordonare (Drag & Drop)
               </button>
@@ -121,7 +128,9 @@ const CategoryView = () => {
               }
             }}
           />
-        )) : (
+        )) : searchQuery ? (
+          <div className="text-center py-10 text-gray-500 col-span-full">Nu am găsit nicio instrucțiune care să conțină acest termen.</div>
+        ) : (
           <p className="text-gray-500 col-span-full">Nu există instrucțiuni în această categorie.</p>
         )}
       </div>

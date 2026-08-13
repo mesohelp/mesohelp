@@ -19,6 +19,9 @@ export default {
         'meso-darkest': '#0A2B1C',
         'meso-green': '#1D5337',
         'meso-light': '#F5F4EF',
+        mesored: "#af1f23",
+        mesobg: "#f8f9fa",
+        mesolight: "#fdf2f2",
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
