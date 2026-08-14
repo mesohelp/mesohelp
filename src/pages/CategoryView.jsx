@@ -11,8 +11,18 @@ const CategoryView = () => {
   const navigate = useNavigate();
   const { instructions, setInstructions, isAdmin, loading, searchQuery } = useContext(AppContext);
   
-  const [localInstructions, setLocalInstructions] = useState([]);
-  const [localLoading, setLocalLoading] = useState(false);
+  const cacheKey = `meso_inst_${categoryName}`;
+  const getCachedData = () => {
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const [localInstructions, setLocalInstructions] = useState(getCachedData);
+  const [localLoading, setLocalLoading] = useState(() => getCachedData().length === 0);
   const [error, setError] = useState(null);
   
   const [isReordering, setIsReordering] = useState(false);
@@ -20,19 +30,22 @@ const CategoryView = () => {
   const [backupInstructions, setBackupInstructions] = useState([]);
 
   useEffect(() => {
+    const cachedData = getCachedData();
+    setLocalInstructions(cachedData);
+    
     // If global loading finished and we STILL have 0 instructions globally, let's fetch locally
     // Also covers the case where direct navigation misses the global state
     if (!loading && instructions.length === 0) {
       const fetchLocal = async () => {
-        setLocalLoading(true);
+        if (cachedData.length === 0) {
+          setLocalLoading(true);
+        }
         try {
           const q = query(collection(db, 'instructions'), where("category", "==", categoryName));
-          console.time("TimpFirebase");
           const querySnapshot = await getDocs(q);
-          console.timeEnd("TimpFirebase");
           const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          console.log("Greutate date (caractere):", JSON.stringify(data).length);
           setLocalInstructions(data);
+          localStorage.setItem(cacheKey, JSON.stringify(data));
         } catch (error) {
           console.error("Eroare la preluarea locală: ", error);
           setError("A apărut o eroare la încărcarea instrucțiunilor.");
