@@ -26,13 +26,13 @@ const Navbar = () => {
   };
 
   let searchPlaceholder = "Caută în toate instrucțiunile...";
-  const currentPath = location.pathname.toLowerCase();
+  const currentPath = decodeURIComponent(location.pathname.toLowerCase());
   
   if (currentPath.includes('kds')) {
     searchPlaceholder = "Caută instrucțiuni pentru KDS...";
   } else if (currentPath.includes('kiosk')) {
     searchPlaceholder = "Caută instrucțiuni pentru Kiosk...";
-  } else if (currentPath.includes('casa')) {
+  } else if (currentPath.includes('casa') || currentPath.includes('casă')) {
     searchPlaceholder = "Caută instrucțiuni pentru Casă...";
   }
 
