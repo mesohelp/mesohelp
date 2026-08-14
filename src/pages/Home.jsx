@@ -1,11 +1,40 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import CategoryCard from '../components/CategoryCard';
 import InstructionCard from '../components/InstructionCard';
 import { Tablet, Monitor, Loader2 } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const Home = () => {
   const { searchQuery, instructions } = useContext(AppContext);
+  
+  useEffect(() => {
+    const prefetchData = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'instructions'));
+        const allData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        const categories = {};
+        allData.forEach(inst => {
+          const cat = inst.category;
+          if (cat) {
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(inst);
+          }
+        });
+        
+        Object.keys(categories).forEach(cat => {
+          const cacheKey = `meso_inst_${cat}`;
+          localStorage.setItem(cacheKey, JSON.stringify(categories[cat]));
+        });
+      } catch (error) {
+        console.warn("Silent pre-fetching failed:", error);
+      }
+    };
+    
+    prefetchData();
+  }, []);
   
   const safeSearchQuery = (searchQuery || "").toLowerCase();
   const filteredInstructions = (instructions || []).filter(inst => 
