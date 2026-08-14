@@ -14,6 +14,10 @@ const CategoryView = () => {
   const [localInstructions, setLocalInstructions] = useState([]);
   const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  const [isReordering, setIsReordering] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [backupInstructions, setBackupInstructions] = useState([]);
 
   useEffect(() => {
     // If global loading finished and we STILL have 0 instructions globally, let's fetch locally
@@ -66,10 +70,6 @@ const CategoryView = () => {
       </div>
     );
   }
-
-  const [isReordering, setIsReordering] = useState(false);
-  const [draggedIndex, setDraggedIndex] = useState(null);
-  const [backupInstructions, setBackupInstructions] = useState([]);
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in">
