@@ -56,6 +56,30 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Auto-healing: If admin is logged in, ensure date.json exists on server, otherwise generate from Firestore
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const checkAndSync = async () => {
+      try {
+        const res = await fetch(`https://support.mesopotamia.ro/date.json?t=${Date.now()}`);
+        if (!res.ok) {
+          console.log("date.json lipsește. Se generează automat din Firestore...");
+          const snapshot = await getDocs(collection(db, 'instructions'));
+          const dateMapate = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          dateMapate.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          setInstructions(dateMapate);
+          await syncToServer(dateMapate);
+          console.log("date.json a fost sincronizat cu succes pe server.");
+        }
+      } catch (error) {
+        console.error("Auto-sync error: ", error);
+      }
+    };
+
+    checkAndSync();
+  }, [isAdmin]);
+
   const login = async (email, password) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);

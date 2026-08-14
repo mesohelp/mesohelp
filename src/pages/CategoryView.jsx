@@ -21,7 +21,6 @@ const CategoryView = () => {
 
   const [localInstructions, setLocalInstructions] = useState(getCachedData);
   const [localLoading, setLocalLoading] = useState(() => getCachedData().length === 0);
-  const [error, setError] = useState(null);
   
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
@@ -50,7 +49,7 @@ const CategoryView = () => {
       } catch (err) {
         console.error("Eroare la preluarea datelor din JSON: ", err);
         if (cachedData.length === 0) {
-          setError("A apărut o eroare la încărcarea instrucțiunilor.");
+          setLocalInstructions([]);
         }
       } finally {
         setLocalLoading(false);
@@ -78,14 +77,6 @@ const CategoryView = () => {
       <div className="flex flex-col justify-center items-center h-[calc(100vh-5rem)] w-full">
         <Loader2 className="w-10 h-10 text-mesored animate-spin mb-4" />
         <span className="text-gray-500 font-medium">Se încarcă instrucțiunile...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col justify-center items-center h-[calc(100vh-5rem)] w-full">
-        <span className="text-mesored font-medium">{error}</span>
       </div>
     );
   }
