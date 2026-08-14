@@ -1,0 +1,40 @@
+name: Deploy Website to cPanel
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  web-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Preluare cod din GitHub
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Configurare mediu Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 📦 Instalare pachete
+      run: npm install
+
+    - name: 🛠️ Generare fisiere pentru productie
+      run: npm run build
+
+    - name: 📂 Trimitere fisiere spre cPanel
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./dist/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          uploads/**
+          upload.php
+          .htaccess
