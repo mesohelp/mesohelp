@@ -27,8 +27,11 @@ const CategoryView = () => {
         setLocalLoading(true);
         try {
           const q = query(collection(db, 'instructions'), where("category", "==", categoryName));
+          console.time("TimpFirebase");
           const querySnapshot = await getDocs(q);
+          console.timeEnd("TimpFirebase");
           const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          console.log("Greutate date (caractere):", JSON.stringify(data).length);
           setLocalInstructions(data);
         } catch (error) {
           console.error("Eroare la preluarea locală: ", error);

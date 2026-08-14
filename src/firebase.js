@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { initializeFirestore } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 // Datele tale de configurare pentru MesoHelp
@@ -16,10 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // 2. Activați serviciile de care avem nevoie
-const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-  useFetchStreams: false
-});
+const db = getFirestore(app);
 const auth = getAuth(app);
 
 // 3. Exportăm totul pentru a putea fi folosit de AppContext.jsx și alte componente
