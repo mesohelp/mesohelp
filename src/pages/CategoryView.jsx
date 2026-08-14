@@ -13,6 +13,7 @@ const CategoryView = () => {
   
   const [localInstructions, setLocalInstructions] = useState([]);
   const [localLoading, setLocalLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // If global loading finished and we STILL have 0 instructions globally, let's fetch locally
@@ -27,6 +28,7 @@ const CategoryView = () => {
           setLocalInstructions(data);
         } catch (error) {
           console.error("Eroare la preluarea locală: ", error);
+          setError("A apărut o eroare la încărcarea instrucțiunilor.");
         } finally {
           setLocalLoading(false);
         }
@@ -37,14 +39,14 @@ const CategoryView = () => {
 
   const safeSearchQuery = (searchQuery || "").toLowerCase();
   
-  const baseInstructions = instructions.length > 0 
-    ? instructions.filter(i => i.category === categoryName)
+  const baseInstructions = instructions?.length > 0 
+    ? instructions.filter(i => i?.category === categoryName)
     : localInstructions;
 
-  const displayInstructions = baseInstructions.filter(inst =>
+  const displayInstructions = baseInstructions?.filter(inst =>
     inst?.title?.toLowerCase().includes(safeSearchQuery) || 
     inst?.content?.toLowerCase().includes(safeSearchQuery)
-  );
+  ) || [];
 
   const isLoading = loading || localLoading;
 
@@ -53,6 +55,14 @@ const CategoryView = () => {
       <div className="flex flex-col justify-center items-center h-[calc(100vh-5rem)] w-full">
         <Loader2 className="w-10 h-10 text-mesored animate-spin mb-4" />
         <span className="text-gray-500 font-medium">Se încarcă instrucțiunile...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center h-[calc(100vh-5rem)] w-full">
+        <span className="text-mesored font-medium">{error}</span>
       </div>
     );
   }
@@ -107,7 +117,7 @@ const CategoryView = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayInstructions.length > 0 ? displayInstructions.map((inst, index) => (
+        {displayInstructions?.length > 0 ? displayInstructions.map((inst, index) => (
           <InstructionCard 
             key={inst.id} 
             instruction={inst} 
@@ -130,9 +140,9 @@ const CategoryView = () => {
             }}
           />
         )) : searchQuery ? (
-          <div className="text-center py-10 text-gray-500 col-span-full">Nu am găsit nicio instrucțiune care să conțină acest termen.</div>
+          <div className="text-center py-10 text-gray-500 col-span-full flex justify-center w-full">Nu am găsit nicio instrucțiune care să conțină acest termen.</div>
         ) : (
-          <p className="text-gray-500 col-span-full">Nu există instrucțiuni în această categorie.</p>
+          <div className="text-center py-10 text-gray-500 col-span-full flex justify-center w-full">Momentan nu există instrucțiuni pentru această categorie.</div>
         )}
       </div>
     </div>
