@@ -50,8 +50,9 @@ const CategoryView = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-[calc(100vh-5rem)] w-full">
-        <Loader2 className="w-10 h-10 text-mesored animate-spin" />
+      <div className="flex flex-col justify-center items-center h-[calc(100vh-5rem)] w-full">
+        <Loader2 className="w-10 h-10 text-mesored animate-spin mb-4" />
+        <span className="text-gray-500 font-medium">Se încarcă instrucțiunile...</span>
       </div>
     );
   }

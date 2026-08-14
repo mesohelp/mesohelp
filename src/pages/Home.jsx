@@ -5,7 +5,7 @@ import InstructionCard from '../components/InstructionCard';
 import { Tablet, Monitor, Loader2 } from 'lucide-react';
 
 const Home = () => {
-  const { searchQuery, instructions, loading } = useContext(AppContext);
+  const { searchQuery, instructions } = useContext(AppContext);
   
   const safeSearchQuery = (searchQuery || "").toLowerCase();
   const filteredInstructions = (instructions || []).filter(inst => 
@@ -43,14 +43,10 @@ const Home = () => {
           <CategoryCard 
             title="Kiosk" 
             icon={<Tablet className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" strokeWidth={1.5} />}
-            count={instructions.filter(i=>i.category==='Kiosk').length}
-            loading={loading}
           />
           <CategoryCard 
             title="Casă" 
             icon={<Monitor className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" strokeWidth={1.5} />}
-            count={instructions.filter(i=>i.category==='Casă').length}
-            loading={loading}
           />
           <CategoryCard 
             title="KDS" 
@@ -60,8 +56,6 @@ const Home = () => {
                 <Monitor className="w-6 h-6 md:w-8 md:h-8 text-mesored transition-colors" strokeWidth={1.5} />
               </div>
             }
-            count={instructions.filter(i=>i.category==='KDS').length}
-            loading={loading}
           />
         </div>
 

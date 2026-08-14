@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-const CategoryCard = ({ title, icon, count, loading }) => {
+const CategoryCard = ({ title, icon }) => {
   const navigate = useNavigate();
 
   const handleDelayedNavigation = () => {
@@ -20,11 +20,6 @@ const CategoryCard = ({ title, icon, count, loading }) => {
       </div>
       <div className="text-left md:text-center flex-1 md:flex-none relative z-10">
         <h2 className="text-lg md:text-2xl font-bold text-gray-900 transition-colors">{title}</h2>
-        {loading ? (
-          <div className="h-4 w-28 md:w-32 bg-gray-200 animate-pulse rounded md:mx-auto mt-1.5"></div>
-        ) : (
-          <p className="text-xs md:text-sm text-gray-500 mt-1 transition-colors">{count} instrucțiuni disponibile</p>
-        )}
       </div>
     </div>
   );
