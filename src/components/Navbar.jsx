@@ -25,6 +25,17 @@ const Navbar = () => {
     navigate('/');
   };
 
+  let searchPlaceholder = "Caută în toate instrucțiunile...";
+  const currentPath = location.pathname.toLowerCase();
+  
+  if (currentPath.includes('kds')) {
+    searchPlaceholder = "Caută instrucțiuni pentru KDS...";
+  } else if (currentPath.includes('kiosk')) {
+    searchPlaceholder = "Caută instrucțiuni pentru Kiosk...";
+  } else if (currentPath.includes('casa')) {
+    searchPlaceholder = "Caută instrucțiuni pentru Casă...";
+  }
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto flex flex-row items-center justify-between w-full px-4 md:px-8 py-3">
@@ -48,7 +59,7 @@ const Navbar = () => {
             <input
               type="text"
               className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 px-4 py-2 pl-10 rounded-lg focus:border-mesored focus:ring-2 focus:ring-mesored/50 transition-all duration-300 outline-none"
-              placeholder="Caută în toate instrucțiunile..."
+              placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={handleSearch}
             />
