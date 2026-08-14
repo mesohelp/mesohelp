@@ -3,8 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import InstructionCard from '../components/InstructionCard';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 
 const CategoryView = () => {
   const { categoryName } = useParams();
@@ -33,29 +31,34 @@ const CategoryView = () => {
     const cachedData = getCachedData();
     setLocalInstructions(cachedData);
     
-    // If global loading finished and we STILL have 0 instructions globally, let's fetch locally
-    // Also covers the case where direct navigation misses the global state
-    if (!loading && instructions.length === 0) {
-      const fetchLocal = async () => {
+    const fetchData = async () => {
+      if (cachedData.length === 0) {
+        setLocalLoading(true);
+      }
+      try {
+        const response = await fetch(`https://support.mesopotamia.ro/date.json?t=${Date.now()}`);
+        if (!response.ok) {
+          throw new Error(`Eroare HTTP: ${response.status}`);
+        }
+        const allData = await response.json();
+        if (Array.isArray(allData)) {
+          setInstructions(allData);
+          const filtered = allData.filter(i => i?.category === categoryName);
+          setLocalInstructions(filtered);
+          localStorage.setItem(cacheKey, JSON.stringify(filtered));
+        }
+      } catch (err) {
+        console.error("Eroare la preluarea datelor din JSON: ", err);
         if (cachedData.length === 0) {
-          setLocalLoading(true);
-        }
-        try {
-          const q = query(collection(db, 'instructions'), where("category", "==", categoryName));
-          const querySnapshot = await getDocs(q);
-          const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setLocalInstructions(data);
-          localStorage.setItem(cacheKey, JSON.stringify(data));
-        } catch (error) {
-          console.error("Eroare la preluarea locală: ", error);
           setError("A apărut o eroare la încărcarea instrucțiunilor.");
-        } finally {
-          setLocalLoading(false);
         }
-      };
-      fetchLocal();
-    }
-  }, [loading, instructions.length, categoryName]);
+      } finally {
+        setLocalLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [categoryName]);
 
   const safeSearchQuery = (searchQuery || "").toLowerCase();
   

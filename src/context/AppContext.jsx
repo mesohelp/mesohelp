@@ -21,6 +21,40 @@ export const AppProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
+  // Initial fetch from public date.json
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const response = await fetch(`https://support.mesopotamia.ro/date.json?t=${Date.now()}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            setInstructions(data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching initial date.json: ", error);
+      }
+    };
+    fetchInitialData();
+  }, []);
+
+  const syncToServer = async (allInstructions) => {
+    try {
+      await fetch('https://support.mesopotamia.ro/sync.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          secret: "meso-admin-secret-2026",
+          instructions: allInstructions
+        }),
+      });
+    } catch (error) {
+      console.error("Error syncing to server: ", error);
+    }
+  };
 
   const login = async (email, password) => {
     try {
@@ -44,7 +78,10 @@ export const AppProvider = ({ children }) => {
     try {
       const newInst = { ...inst, createdAt: Date.now() };
       const docRef = await addDoc(collection(db, 'instructions'), newInst);
-      setInstructions(prev => [{ ...newInst, id: docRef.id }, ...prev]);
+      const newInstructionWithId = { ...newInst, id: docRef.id };
+      const updatedList = [newInstructionWithId, ...instructions];
+      setInstructions(updatedList);
+      await syncToServer(updatedList);
     } catch (error) {
       console.error("Error adding instruction: ", error);
       throw error;
@@ -55,7 +92,9 @@ export const AppProvider = ({ children }) => {
     try {
       const docRef = doc(db, 'instructions', id);
       await updateDoc(docRef, updated);
-      setInstructions(prev => prev.map(i => i.id === id ? { ...i, ...updated } : i));
+      const updatedList = instructions.map(i => i.id === id ? { ...i, ...updated } : i);
+      setInstructions(updatedList);
+      await syncToServer(updatedList);
     } catch (error) {
       console.error("Error updating instruction: ", error);
       throw error;
@@ -66,7 +105,9 @@ export const AppProvider = ({ children }) => {
     try {
       const docRef = doc(db, 'instructions', id);
       await deleteDoc(docRef);
-      setInstructions(prev => prev.filter(i => i.id !== id));
+      const updatedList = instructions.filter(i => i.id !== id);
+      setInstructions(updatedList);
+      await syncToServer(updatedList);
     } catch (error) {
       console.error("Error deleting instruction: ", error);
       throw error;
@@ -75,7 +116,7 @@ export const AppProvider = ({ children }) => {
 
   return (
     <AppContext.Provider value={{
-      instructions, setInstructions, addInstruction, updateInstruction, deleteInstruction,
+      instructions, setInstructions, addInstruction, updateInstruction, deleteInstruction, syncToServer,
       isAdmin, setIsAdmin, searchQuery, setSearchQuery, login, logout, loading, authLoading
     }}>
       {children}
