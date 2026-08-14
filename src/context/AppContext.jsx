@@ -5,11 +5,20 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebas
 
 export const AppContext = createContext();
 
+const getCachedInstructions = () => {
+  try {
+    const cached = localStorage.getItem('meso_instructions');
+    return cached ? JSON.parse(cached) : [];
+  } catch (error) {
+    return [];
+  }
+};
+
 export const AppProvider = ({ children }) => {
-  const [instructions, setInstructions] = useState([]);
+  const [instructions, setInstructions] = useState(getCachedInstructions);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => getCachedInstructions().length === 0);
   const [authLoading, setAuthLoading] = useState(true);
 
   // Authentication Listener
@@ -24,7 +33,9 @@ export const AppProvider = ({ children }) => {
   // Fetch Instructions from Firestore
   useEffect(() => {
     const fetchInstructions = async () => {
-      setLoading(true);
+      if (getCachedInstructions().length === 0) {
+        setLoading(true);
+      }
       try {
         const querySnapshot = await getDocs(collection(db, 'instructions'));
         const data = querySnapshot.docs.map(doc => ({
@@ -34,6 +45,7 @@ export const AppProvider = ({ children }) => {
         // Sort by createdAt descending to match previous behavior
         data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         setInstructions(data);
+        localStorage.setItem('meso_instructions', JSON.stringify(data));
       } catch (error) {
         console.error("Error fetching instructions: ", error);
       } finally {
