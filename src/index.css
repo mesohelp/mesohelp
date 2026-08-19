@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-mesobg text-gray-900;
+  html, body {
+    @apply bg-mesobg text-gray-900 overflow-x-hidden;
   }
 }
 

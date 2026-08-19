@@ -33,25 +33,27 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
-      <main className="bg-mesobg min-h-screen pb-20 md:pb-0">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/category/:categoryName" element={<CategoryView />} />
-          <Route path="/instruction/:id" element={<InstructionDetail />} />
-          <Route path="/login" element={<AdminLogin />} />
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-      <BottomNav />
+      <div className="min-h-screen w-full overflow-x-hidden flex flex-col bg-mesobg">
+        <Navbar />
+        <main className="flex-1 w-full overflow-x-hidden pb-20 md:pb-0">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/category/:categoryName" element={<CategoryView />} />
+            <Route path="/instruction/:id" element={<InstructionDetail />} />
+            <Route path="/login" element={<AdminLogin />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        <BottomNav />
+      </div>
     </BrowserRouter>
   );
 }
