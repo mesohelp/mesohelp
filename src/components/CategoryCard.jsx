@@ -13,7 +13,7 @@ const CategoryCard = ({ title, icon }) => {
     <div 
       role="button"
       onClick={handleDelayedNavigation} 
-      className="w-full h-auto flex flex-row md:flex-col items-center md:justify-center p-4 md:p-8 bg-white rounded-2xl shadow-sm hover:shadow-[0_0_15px_rgba(181,18,27,0.25)] hover:border-mesored transition-all duration-300 border border-transparent group select-none [-webkit-touch-callout:none] touch-none active:scale-[0.97] [-webkit-tap-highlight-color:transparent]"
+      className="w-full h-auto flex flex-row md:flex-col items-center md:justify-center p-4 md:p-8 bg-white rounded-2xl shadow-sm hover:shadow-[0_0_15px_rgba(181,18,27,0.25)] hover:border-mesored transition-all duration-300 border border-transparent group cursor-pointer active:scale-[0.97] [-webkit-tap-highlight-color:transparent]"
     >
       <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-mesobg flex items-center justify-center shrink-0 md:group-hover:bg-mesolight text-mesored transition-colors relative z-10">
         {icon}

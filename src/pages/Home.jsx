@@ -64,15 +64,9 @@ const Home = () => {
   }
 
   return (
-    <div className="flex flex-col justify-start items-center w-full h-[calc(100dvh-80px)] overflow-hidden bg-transparent px-4">
-      <div className="flex flex-col w-full max-w-5xl gap-8 md:gap-16 mt-8 md:mt-16 h-auto">
-        
-        <div className="w-full text-center animate-slide-up">
-          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">Cum te putem ajuta?</h1>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">Alege o categorie de mai jos pentru a vizualiza ghidurile tehnice și instrucțiunile de utilizare.</p>
-        </div>
-        
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 animate-slide-up" style={{animationDelay: '0.1s'}}>
+    <div className="flex flex-col justify-start items-center w-full h-auto bg-transparent px-4 pb-8 pt-4 md:pt-8">
+      <div className="flex flex-col w-full max-w-5xl h-auto">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 animate-slide-up">
           <CategoryCard 
             title="Kiosk" 
             icon={<Tablet className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" strokeWidth={1.5} />}
@@ -91,7 +85,6 @@ const Home = () => {
             }
           />
         </div>
-
       </div>
     </div>
   );
