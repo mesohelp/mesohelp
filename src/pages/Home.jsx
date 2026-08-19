@@ -66,6 +66,9 @@ const Home = () => {
   return (
     <div className="flex flex-col justify-start items-center w-full h-auto bg-transparent px-4 pb-8 pt-4 md:pt-8">
       <div className="flex flex-col w-full max-w-5xl h-auto">
+        <p className="text-center text-gray-500 mb-8 md:mb-12 max-w-2xl mx-auto px-4">
+          Alege o categorie de mai jos pentru a vizualiza ghidurile tehnice și instrucțiunile de utilizare.
+        </p>
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 animate-slide-up">
           <CategoryCard 
             title="Kiosk" 
