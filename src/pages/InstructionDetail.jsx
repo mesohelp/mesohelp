@@ -117,7 +117,7 @@ const InstructionDetail = () => {
               {new Date(instruction.createdAt).toLocaleDateString()}
             </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight break-words hyphens-auto">
             {instruction.title}
           </h1>
 

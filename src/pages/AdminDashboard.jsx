@@ -321,7 +321,7 @@ const AdminDashboard = () => {
                   )}
                   <td className="px-6 py-4 font-medium text-gray-900">
                     <div className="flex items-center gap-2">
-                      <span>{inst.title}</span>
+                      <span className="break-words">{inst.title}</span>
                       {inst.videoUrl && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-mesolight text-mesored border border-mesored/20">VIDEO</span>}
                     </div>
                   </td>

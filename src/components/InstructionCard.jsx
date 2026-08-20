@@ -39,10 +39,10 @@ const InstructionCard = ({ instruction, isReordering, isDragging, dragProps }) =
           </div>
         )}
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-3 transition-colors line-clamp-2">
+      <h3 className="text-xl font-bold text-gray-900 mb-3 transition-colors line-clamp-2 break-words">
         {instruction.title}
       </h3>
-      <p className="text-gray-500 text-sm line-clamp-3 mb-4 flex-grow transition-colors">
+      <p className="text-gray-500 text-sm line-clamp-3 mb-4 flex-grow transition-colors break-words">
         {instruction.content}
       </p>
       <div className="text-xs text-gray-400 mt-auto font-medium transition-colors">
