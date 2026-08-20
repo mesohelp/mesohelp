@@ -1,6 +1,6 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useMemo } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Video, Image as ImageIcon, Type, Trash2, Loader2, Link2, Check, X, Search, ChevronDown } from 'lucide-react';
+import { Video, Image as ImageIcon, Type, Trash2, Loader2, Link2, Check, X, Search, ChevronDown, Plus } from 'lucide-react';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 // Media files are now uploaded via the custom PHP API
@@ -13,19 +13,6 @@ const Size = Quill.import('attributors/style/size');
 const customSizes = ['8px', '10px', '12px', '14px', '16px', '18px', '20px', '24px', '30px', '36px'];
 Size.whitelist = customSizes;
 Quill.register(Size, true);
-
-const quillModules = {
-  toolbar: [
-    [{ 'font': customFonts }, { 'size': customSizes }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'color': [] }],
-    [{ 'script': 'sub'}, { 'script': 'super' }],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-    [{ 'indent': '-1'}, { 'indent': '+1' }],
-    [{ 'align': [] }],
-    ['clean']
-  ]
-};
 
 const CATEGORIES = ['Kiosk', 'Casă', 'KDS'];
 
@@ -45,10 +32,58 @@ const InstructionForm = ({ instructionId, onClose }) => {
   const [isRelatedDropdownOpen, setIsRelatedDropdownOpen] = useState(false);
   const [relatedSearch, setRelatedSearch] = useState('');
 
+  // Stări pentru Custom Modal "Insert Instrucțiune"
+  const [isInsertModalOpen, setIsInsertModalOpen] = useState(false);
+  const [insertSearchQuery, setInsertSearchQuery] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [activeQuillInstance, setActiveQuillInstance] = useState(null);
+
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isReorderingSections, setIsReorderingSections] = useState(false);
   const [draggedSectionIndex, setDraggedSectionIndex] = useState(null);
+
+  // Configurare ReactQuill cu butonul custom 'insertInstruction'
+  const quillModules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'font': customFonts }, { 'size': customSizes }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'align': [] }],
+        ['link', 'insertInstruction'],
+        ['clean']
+      ],
+      handlers: {
+        insertInstruction: function() {
+          const range = this.quill.getSelection(true);
+          setActiveQuillInstance(this.quill);
+          setCursorPosition(range ? range.index : 0);
+          setInsertSearchQuery('');
+          setIsInsertModalOpen(true);
+        }
+      }
+    }
+  }), []);
+
+  // Funcția de Injectare a instrucțiunii în editorul WYSIWYG
+  const handleInsertInstruction = (targetInst) => {
+    if (!activeQuillInstance) return;
+
+    const quill = activeQuillInstance;
+    const pos = typeof cursorPosition === 'number' ? cursorPosition : (quill.getSelection()?.index || 0);
+
+    const linkHtml = `<a href="/instruction/${targetInst.id}" data-type="internal-link">${targetInst.title}</a>&nbsp;`;
+    quill.clipboard.dangerouslyPasteHTML(pos, linkHtml);
+    quill.setSelection(pos + targetInst.title.length + 1);
+
+    setIsInsertModalOpen(false);
+    setInsertSearchQuery('');
+    setActiveQuillInstance(null);
+  };
   
   const [sections, setSections] = useState(() => {
     if (inst) {
@@ -479,6 +514,107 @@ const InstructionForm = ({ instructionId, onClose }) => {
           </button>
         </div>
       </form>
+
+      {/* 1. Modal Căutare & Inserare Instrucțiune în WYSIWYG */}
+      {isInsertModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-[70] p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh]">
+            {/* Header Modal */}
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-red-50 text-mesored rounded-xl">
+                  <Link2 size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-base">Inserează Ghid / Instrucțiune</h3>
+                  <p className="text-xs text-gray-500">Alege instrucțiunea pe care vrei să o inserezi în text</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInsertModalOpen(false);
+                  setActiveQuillInstance(null);
+                }}
+                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Închide"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Input Căutare */}
+            <div className="p-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2.5">
+              <Search size={16} className="text-gray-400 shrink-0" />
+              <input
+                type="text"
+                autoFocus
+                placeholder="Caută instrucțiune după titlu sau categorie..."
+                value={insertSearchQuery}
+                onChange={(e) => setInsertSearchQuery(e.target.value)}
+                className="w-full bg-transparent text-sm outline-none text-gray-800 placeholder-gray-400"
+              />
+              {insertSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setInsertSearchQuery('')}
+                  className="text-gray-400 hover:text-gray-600 p-0.5"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Listă Instrucțiuni Disponibile */}
+            <div className="p-2 overflow-y-auto max-h-80 divide-y divide-gray-50">
+              {filteredAvailableInstructions.length > 0 ? (
+                filteredAvailableInstructions.map((targetInst) => (
+                  <div
+                    key={targetInst.id}
+                    onClick={() => handleInsertInstruction(targetInst)}
+                    className="p-3 rounded-xl hover:bg-red-50/60 cursor-pointer transition-all flex items-center justify-between group"
+                  >
+                    <div className="min-w-0 pr-3">
+                      <h4 className="text-sm font-semibold text-gray-900 group-hover:text-mesored transition-colors truncate">
+                        {targetInst.title}
+                      </h4>
+                      {targetInst.category && (
+                        <span className="inline-block mt-1 text-[11px] px-2 py-0.5 bg-gray-100 group-hover:bg-red-100/70 text-gray-600 group-hover:text-mesored rounded-md font-medium">
+                          {targetInst.category}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="shrink-0 px-3 py-1.5 bg-white group-hover:bg-mesored text-gray-700 group-hover:text-white border border-gray-200 group-hover:border-mesored rounded-lg text-xs font-semibold shadow-2xs transition-all"
+                    >
+                      Inserează
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="py-8 text-center text-gray-400 text-sm">
+                  {insertSearchQuery ? "Nu a fost găsită nicio instrucțiune conform căutării." : "Nu există instrucțiuni disponibile."}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Modal */}
+            <div className="p-3 border-t border-gray-100 bg-gray-50 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInsertModalOpen(false);
+                  setActiveQuillInstance(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Anulează
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4">

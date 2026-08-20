@@ -77,3 +77,41 @@
 .ql-align-right { text-align: right; }
 .ql-align-justify { text-align: justify; }
 .ql-align-left { text-align: left; }
+
+/* Custom Quill Toolbar Insert Instruction Button */
+.ql-snow.ql-toolbar button.ql-insertInstruction {
+  width: auto !important;
+  height: 24px !important;
+  padding: 2px 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  border-radius: 6px !important;
+  background-color: #fef2f2 !important;
+  border: 1px solid rgba(175, 31, 35, 0.25) !important;
+  margin-left: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.ql-snow.ql-toolbar button.ql-insertInstruction:hover {
+  background-color: #fee2e2 !important;
+  border-color: #af1f23 !important;
+  box-shadow: 0 1px 2px rgba(175, 31, 35, 0.15) !important;
+}
+
+.ql-snow.ql-toolbar button.ql-insertInstruction::before {
+  content: '🔗';
+  font-size: 11px;
+  line-height: 1;
+}
+
+.ql-snow.ql-toolbar button.ql-insertInstruction::after {
+  content: 'Insert Instrucțiune';
+  font-size: 11px;
+  font-weight: 700;
+  color: #af1f23;
+  line-height: 1;
+  white-space: nowrap;
+}
