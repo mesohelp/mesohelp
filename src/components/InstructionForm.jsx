@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Video, Image as ImageIcon, Type, Trash2, Loader2 } from 'lucide-react';
+import { Video, Image as ImageIcon, Type, Trash2, Loader2, Link2, Check, X, Search, ChevronDown } from 'lucide-react';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 // Media files are now uploaded via the custom PHP API
@@ -36,6 +36,15 @@ const InstructionForm = ({ instructionId, onClose }) => {
   
   const [title, setTitle] = useState(inst ? inst.title : '');
   const [category, setCategory] = useState(inst ? inst.category : 'Kiosk');
+  const [relatedInstructions, setRelatedInstructions] = useState(() => {
+    if (inst && Array.isArray(inst.relatedInstructions)) {
+      return inst.relatedInstructions;
+    }
+    return [];
+  });
+  const [isRelatedDropdownOpen, setIsRelatedDropdownOpen] = useState(false);
+  const [relatedSearch, setRelatedSearch] = useState('');
+
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isReorderingSections, setIsReorderingSections] = useState(false);
@@ -76,6 +85,31 @@ const InstructionForm = ({ instructionId, onClose }) => {
   const updateSectionDescription = (id, newDesc) => {
     setSections(sections.map(s => s.id === id ? { ...s, description: newDesc } : s));
   };
+
+  const toggleRelatedInstruction = (item) => {
+    const isSelected = relatedInstructions.some(r => r.id === item.id);
+    if (isSelected) {
+      setRelatedInstructions(relatedInstructions.filter(r => r.id !== item.id));
+    } else {
+      setRelatedInstructions([
+        ...relatedInstructions,
+        { id: item.id, title: item.title }
+      ]);
+    }
+  };
+
+  const removeRelatedInstruction = (id) => {
+    setRelatedInstructions(relatedInstructions.filter(r => r.id !== id));
+  };
+
+  const availableInstructions = (instructions || []).filter(i => 
+    i.id !== instructionId && i.title && i.title.trim().length > 0
+  );
+
+  const filteredAvailableInstructions = availableInstructions.filter(i =>
+    i.title.toLowerCase().includes(relatedSearch.toLowerCase()) ||
+    (i.category && i.category.toLowerCase().includes(relatedSearch.toLowerCase()))
+  );
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -130,7 +164,12 @@ const InstructionForm = ({ instructionId, onClose }) => {
         return rest;
       }));
 
-      const payload = { title, category, sections: updatedSections };
+      const payload = { 
+        title, 
+        category, 
+        sections: updatedSections,
+        relatedInstructions: relatedInstructions.map(r => ({ id: r.id, title: r.title }))
+      };
       
       if (instructionId) {
         await updateInstruction(instructionId, payload);
@@ -210,6 +249,113 @@ const InstructionForm = ({ instructionId, onClose }) => {
               ></div>
             )}
           </div>
+        </div>
+
+        {/* Instrucțiuni Corelate (Multi-Select) */}
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+            <Link2 size={16} className="text-mesored" />
+            <span>Instrucțiuni Corelate (Vezi și)</span>
+            <span className="text-xs font-normal text-gray-400">({relatedInstructions.length} selectate)</span>
+          </label>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsRelatedDropdownOpen(!isRelatedDropdownOpen)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-left focus:bg-white focus:border-mesored focus:ring-2 focus:ring-mesored/50 transition-all outline-none flex justify-between items-center"
+            >
+              <span className={relatedInstructions.length === 0 ? "text-gray-400 text-sm" : "text-gray-800 text-sm font-medium"}>
+                {relatedInstructions.length === 0 
+                  ? "Selectează instrucțiuni corelate..." 
+                  : `${relatedInstructions.length} instrucțiun${relatedInstructions.length === 1 ? 'e corelată' : 'i corelate'} selectat${relatedInstructions.length === 1 ? 'ă' : 'e'}`}
+              </span>
+              <ChevronDown size={16} className={`text-gray-500 transition-transform ${isRelatedDropdownOpen ? 'rotate-180 text-mesored' : ''}`} />
+            </button>
+
+            {isRelatedDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsRelatedDropdownOpen(false)} />
+                <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-2xl shadow-xl max-h-72 flex flex-col overflow-hidden animate-fade-in">
+                  <div className="p-2.5 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+                    <Search size={16} className="text-gray-400 shrink-0" />
+                    <input 
+                      type="text"
+                      placeholder="Caută instrucțiuni..."
+                      value={relatedSearch}
+                      onChange={(e) => setRelatedSearch(e.target.value)}
+                      className="w-full bg-transparent text-sm outline-none text-gray-800 placeholder-gray-400"
+                      autoFocus
+                    />
+                    {relatedSearch && (
+                      <button type="button" onClick={() => setRelatedSearch('')} className="p-0.5 text-gray-400 hover:text-gray-600">
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="overflow-y-auto max-h-56 divide-y divide-gray-50 p-1">
+                    {filteredAvailableInstructions.length > 0 ? (
+                      filteredAvailableInstructions.map((item) => {
+                        const isSelected = relatedInstructions.some(r => r.id === item.id);
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => toggleRelatedInstruction(item)}
+                            className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-colors text-sm ${
+                              isSelected ? 'bg-red-50 text-mesored font-medium' : 'hover:bg-gray-50 text-gray-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${
+                                isSelected ? 'bg-mesored border-mesored text-white' : 'border-gray-300 bg-white'
+                              }`}>
+                                {isSelected && <Check size={12} strokeWidth={3} />}
+                              </div>
+                              <span className="truncate">{item.title}</span>
+                            </div>
+                            {item.category && (
+                              <span className="text-[11px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md font-normal shrink-0">
+                                {item.category}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="p-4 text-center text-xs text-gray-400">
+                        {availableInstructions.length === 0 
+                          ? "Nu există alte instrucțiuni disponibile." 
+                          : "Nu s-au găsit instrucțiuni conform căutării."}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Badges / Chips pentru instrucțiunile selectate */}
+          {relatedInstructions.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {relatedInstructions.map((rel) => (
+                <span 
+                  key={rel.id} 
+                  className="inline-flex items-center gap-1.5 bg-mesolight border border-mesored/20 text-mesored text-xs font-semibold px-3 py-1 rounded-full shadow-xs"
+                >
+                  <span className="max-w-[200px] truncate">{rel.title}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => removeRelatedInstruction(rel.id)}
+                    className="hover:bg-mesored/20 rounded-full p-0.5 transition-colors"
+                    title="Elimină"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">

@@ -1,13 +1,17 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import { ArrowLeft, Video, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Link2, Video, Loader2 } from 'lucide-react';
 
 const InstructionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { instructions, loading } = useContext(AppContext);
   
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-5rem)] w-full">
@@ -50,13 +54,16 @@ const InstructionDetail = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 animate-slide-up">
-      <button 
-        onClick={() => navigate(-1)} 
-        className="flex items-center justify-center bg-white border border-gray-200 rounded-xl p-2 md:p-2.5 hover:bg-gray-50 transition-all shadow-sm text-gray-900 mb-6 select-none [-webkit-touch-callout:none] active:scale-[0.97] w-fit"
-        title="Înapoi"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 hover:bg-gray-50 transition-all shadow-sm text-gray-700 hover:text-gray-900 select-none [-webkit-touch-callout:none] active:scale-[0.97] text-sm font-medium"
+          title="Înapoi"
+        >
+          <ArrowLeft className="w-4 h-4 text-mesored" />
+          <span>Înapoi la instrucțiunea anterioară</span>
+        </button>
+      </div>
       
       <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
         <div className="p-8 md:p-10 border-b border-gray-100">
@@ -136,6 +143,47 @@ const InstructionDetail = () => {
               )}
             </>
           )}
+
+          {/* Secțiunea Instrucțiuni Corelate (Vezi și) */}
+          {instruction.relatedInstructions && instruction.relatedInstructions.length > 0 && (
+            <div className="mt-12 pt-8 border-t border-gray-100">
+              <div className="flex items-center gap-2 mb-4">
+                <Link2 className="w-5 h-5 text-mesored" />
+                <h3 className="text-lg font-bold text-gray-900">Vezi și:</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {instruction.relatedInstructions.map((rel) => (
+                  <button
+                    key={rel.id}
+                    onClick={() => {
+                      navigate(`/instruction/${rel.id}`);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="group flex items-center justify-between p-4 bg-gray-50 hover:bg-mesolight border border-gray-200 hover:border-mesored/30 rounded-2xl transition-all shadow-xs active:scale-[0.98] text-left"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 pr-2">
+                      <div className="w-2 h-2 rounded-full bg-mesored shrink-0 group-hover:scale-125 transition-transform" />
+                      <span className="font-semibold text-gray-800 group-hover:text-mesored text-sm truncate">
+                        {rel.title}
+                      </span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-mesored group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Buton de revenire la finalul instrucțiunii */}
+          <div className="mt-10 pt-6 border-t border-gray-100 flex justify-between items-center">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-mesored font-medium text-sm transition-colors py-2 px-3 rounded-xl hover:bg-gray-50 active:scale-[0.98]"
+            >
+              <ArrowLeft className="w-4 h-4 text-mesored" />
+              <span>Înapoi la instrucțiunea anterioară</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
