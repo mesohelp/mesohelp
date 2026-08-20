@@ -29,7 +29,8 @@ const Home = () => {
           
           Object.keys(categories).forEach(cat => {
             const cacheKey = `meso_inst_${cat}`;
-            localStorage.setItem(cacheKey, JSON.stringify(categories[cat]));
+            const sortedCatList = [...categories[cat]].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+            localStorage.setItem(cacheKey, JSON.stringify(sortedCatList));
           });
         }
       } catch (error) {
@@ -41,10 +42,13 @@ const Home = () => {
   }, [setInstructions]);
   
   const safeSearchQuery = (searchQuery || "").toLowerCase();
-  const filteredInstructions = (instructions || []).filter(inst => 
-    inst?.title?.toLowerCase().includes(safeSearchQuery) || 
-    inst?.content?.toLowerCase().includes(safeSearchQuery)
-  );
+  const filteredInstructions = (instructions || [])
+    .slice()
+    .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+    .filter(inst => 
+      inst?.title?.toLowerCase().includes(safeSearchQuery) || 
+      inst?.content?.toLowerCase().includes(safeSearchQuery)
+    );
 
   if (searchQuery) {
     return (

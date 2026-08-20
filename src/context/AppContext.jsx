@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 export const AppContext = createContext();
@@ -67,7 +67,7 @@ export const AppProvider = ({ children }) => {
           console.log("date.json lipsește. Se generează automat din Firestore...");
           const snapshot = await getDocs(collection(db, 'instructions'));
           const dateMapate = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          dateMapate.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          dateMapate.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0) || (b.createdAt || 0) - (a.createdAt || 0));
           setInstructions(dateMapate);
           await syncToServer(dateMapate);
           console.log("date.json a fost sincronizat cu succes pe server.");
@@ -100,7 +100,15 @@ export const AppProvider = ({ children }) => {
 
   const addInstruction = async (inst) => {
     try {
-      const newInst = { ...inst, createdAt: Date.now() };
+      const categoryInstructions = instructions.filter(i => i.category === inst.category);
+      const nextOrderIndex = categoryInstructions.length > 0
+        ? Math.max(...categoryInstructions.map(i => (typeof i.orderIndex === 'number' ? i.orderIndex : 0))) + 1
+        : 0;
+      const newInst = { 
+        ...inst, 
+        orderIndex: typeof inst.orderIndex === 'number' ? inst.orderIndex : nextOrderIndex, 
+        createdAt: Date.now() 
+      };
       const docRef = await addDoc(collection(db, 'instructions'), newInst);
       const newInstructionWithId = { ...newInst, id: docRef.id };
       const updatedList = [newInstructionWithId, ...instructions];
@@ -138,9 +146,41 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const saveInstructionOrder = async (orderedCategoryItems) => {
+    try {
+      const batch = writeBatch(db);
+      const orderMap = new Map();
+
+      orderedCategoryItems.forEach((item, index) => {
+        if (item.id) {
+          const docRef = doc(db, 'instructions', item.id);
+          batch.update(docRef, { orderIndex: index });
+          orderMap.set(item.id, index);
+        }
+      });
+
+      await batch.commit();
+
+      const updatedList = instructions.map(inst => {
+        if (orderMap.has(inst.id)) {
+          return { ...inst, orderIndex: orderMap.get(inst.id) };
+        }
+        return inst;
+      });
+
+      setInstructions(updatedList);
+      await syncToServer(updatedList);
+      return true;
+    } catch (error) {
+      console.error("Error saving instruction order: ", error);
+      throw error;
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       instructions, setInstructions, addInstruction, updateInstruction, deleteInstruction, syncToServer,
+      saveInstructionOrder, reorderInstructions: saveInstructionOrder,
       isAdmin, setIsAdmin, searchQuery, setSearchQuery, login, logout, loading, authLoading
     }}>
       {children}

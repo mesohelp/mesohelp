@@ -7,7 +7,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 const CategoryView = () => {
   const { categoryName } = useParams();
   const navigate = useNavigate();
-  const { instructions, setInstructions, isAdmin, loading, searchQuery } = useContext(AppContext);
+  const { instructions, setInstructions, saveInstructionOrder, isAdmin, loading, searchQuery } = useContext(AppContext);
   
   const cacheKey = `meso_inst_${categoryName}`;
   const getCachedData = () => {
@@ -25,6 +25,7 @@ const CategoryView = () => {
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [backupInstructions, setBackupInstructions] = useState([]);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   useEffect(() => {
     const cachedData = getCachedData();
@@ -42,7 +43,9 @@ const CategoryView = () => {
         const allData = await response.json();
         if (Array.isArray(allData)) {
           setInstructions(allData);
-          const filtered = allData.filter(i => i?.category === categoryName);
+          const filtered = allData
+            .filter(i => i?.category === categoryName)
+            .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
           setLocalInstructions(filtered);
           localStorage.setItem(cacheKey, JSON.stringify(filtered));
         }
@@ -61,14 +64,32 @@ const CategoryView = () => {
 
   const safeSearchQuery = (searchQuery || "").toLowerCase();
   
-  const baseInstructions = instructions?.length > 0 
+  const rawBase = instructions?.length > 0 
     ? instructions.filter(i => i?.category === categoryName)
     : localInstructions;
+
+  const baseInstructions = [...rawBase].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
   const displayInstructions = baseInstructions?.filter(inst =>
     inst?.title?.toLowerCase().includes(safeSearchQuery) || 
     inst?.content?.toLowerCase().includes(safeSearchQuery)
   ) || [];
+
+  const handleSaveOrder = async () => {
+    setIsSavingOrder(true);
+    try {
+      const currentCategoryItems = instructions.filter(i => i?.category === categoryName);
+      if (saveInstructionOrder) {
+        await saveInstructionOrder(currentCategoryItems);
+      }
+      setIsReordering(false);
+    } catch (error) {
+      console.error("Eroare la salvarea ordinii în CategoryView:", error);
+      alert("A apărut o eroare la salvarea ordinii.");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
 
   const isLoading = loading || localLoading;
 
@@ -100,14 +121,17 @@ const CategoryView = () => {
                     setInstructions(backupInstructions);
                     setIsReordering(false);
                   }} 
-                  className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
+                  disabled={isSavingOrder}
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
                 >
                   Anulează
                 </button>
                 <button 
-                  onClick={() => setIsReordering(false)} 
-                  className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-mesored text-white hover:bg-red-800"
+                  onClick={handleSaveOrder} 
+                  disabled={isSavingOrder}
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-mesored text-white hover:bg-red-800 disabled:opacity-70 flex items-center gap-2"
                 >
+                  {isSavingOrder && <Loader2 className="w-4 h-4 animate-spin" />}
                   Salvează Ordinea
                 </button>
               </>
@@ -117,7 +141,8 @@ const CategoryView = () => {
                   setBackupInstructions([...instructions]);
                   setIsReordering(true);
                 }} 
-                className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-white border border-gray-200 text-gray-900 hover:bg-gray-50"
+                disabled={displayInstructions.length <= 1}
+                className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Reordonare (Drag & Drop)
               </button>

@@ -1,11 +1,118 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import InstructionForm from '../components/InstructionForm';
-import { Shield, Plus, Pencil, Trash, Spinner } from '@phosphor-icons/react';
+import { Shield, Plus, Pencil, Trash, Spinner, DotsSixVertical, ArrowsDownUp, Check, X, Funnel } from '@phosphor-icons/react';
 
 const AdminDashboard = () => {
-  const { instructions, deleteInstruction, loading, searchQuery } = useContext(AppContext);
+  const { instructions, deleteInstruction, saveInstructionOrder, loading, searchQuery } = useContext(AppContext);
   
+  const [editingId, setEditingId] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, instructionId: null });
+
+  // 1. Filtrarea pe Categorii
+  const [selectedCategory, setSelectedCategory] = useState("Toate");
+
+  // 2. Modul de Reordonare (Drag & Drop)
+  const [isReordering, setIsReordering] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [reorderedList, setReorderedList] = useState([]);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+
+  // Filter instructions based on category
+  const categoryInstructions = selectedCategory && selectedCategory !== "Toate"
+    ? instructions.filter(item => item.category === selectedCategory)
+    : instructions;
+
+  // Sorted instructions by orderIndex
+  const sortedInstructions = [...categoryInstructions].sort(
+    (a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)
+  );
+
+  // If search query is present and not reordering, filter by title
+  const displayedInstructions = isReordering
+    ? reorderedList
+    : sortedInstructions.filter(item =>
+        item.title?.toLowerCase().includes((searchQuery || '').toLowerCase())
+      );
+
+  // Sync reorderedList when category changes or reordering mode is entered
+  const startReordering = () => {
+    const list = [...categoryInstructions].sort(
+      (a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)
+    );
+    setReorderedList(list);
+    setIsReordering(true);
+  };
+
+  const cancelReordering = () => {
+    setIsReordering(false);
+    setReorderedList([]);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // 3. Salvarea Ordinii Globale (Backend & Context)
+  const handleSaveOrder = async () => {
+    setIsSavingOrder(true);
+    try {
+      await saveInstructionOrder(reorderedList);
+      setIsReordering(false);
+      setReorderedList([]);
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+    } catch (error) {
+      console.error("Eroare la salvarea ordinii:", error);
+      alert("A apărut o eroare la salvarea noii ordini.");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
+  // Drag & Drop handlers
+  const handleDragStart = (e, index) => {
+    if (!isReordering) return;
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Transparent or ghost styling
+    if (e.dataTransfer.setData) {
+      e.dataTransfer.setData('text/plain', index.toString());
+    }
+  };
+
+  const handleDragOver = (e, index) => {
+    if (!isReordering) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    if (!isReordering) return;
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const updated = [...reorderedList];
+    const [draggedItem] = updated.splice(draggedIndex, 1);
+    updated.splice(targetIndex, 0, draggedItem);
+
+    setReorderedList(updated);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-5rem)] w-full">
@@ -13,11 +120,6 @@ const AdminDashboard = () => {
       </div>
     );
   }
-  const [editingId, setEditingId] = useState(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [deleteModal, setDeleteModal] = useState({ isOpen: false, instructionId: null });
-
-  const filteredInstructions = instructions.filter(item => item.title?.toLowerCase().includes((searchQuery || '').toLowerCase()));
 
   const handleEdit = (id) => {
     setEditingId(id);
@@ -42,7 +144,7 @@ const AdminDashboard = () => {
           <p className="text-gray-500 mt-1">Gestionează articolele din baza de cunoștințe</p>
         </div>
         {!isFormOpen && (
-          <button onClick={handleNew} className="flex items-center gap-2 bg-mesored hover:bg-red-800 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm">
+          <button onClick={handleNew} className="flex items-center gap-2 bg-mesored hover:bg-red-800 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm active:scale-[0.98]">
             <Plus size={20} weight="duotone" />
             Instrucțiune Nouă
           </button>
@@ -59,11 +161,93 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Control Bar: Filtrare Categorii & Butoane Reordonare */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-4">
+        {/* Dropdown Filtrare Categorie */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <Funnel size={18} weight="duotone" className="text-mesored" />
+            <span>Categorie:</span>
+          </div>
+          <select
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setIsReordering(false);
+              setReorderedList([]);
+            }}
+            disabled={isReordering}
+            className="bg-white border border-gray-200 text-gray-800 text-sm font-medium rounded-xl px-4 py-2 focus:ring-2 focus:ring-mesored/50 focus:border-mesored outline-none shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            <option value="Toate">Toate</option>
+            <option value="Kiosk">Kiosk</option>
+            <option value="Casă">Casă</option>
+            <option value="KDS">KDS</option>
+          </select>
+        </div>
+
+        {/* Butoane Reordonare (Apar DOAR când o categorie specifică este selectată) */}
+        {selectedCategory !== "Toate" && (
+          <div className="flex items-center gap-2">
+            {isReordering ? (
+              <>
+                <button 
+                  type="button"
+                  onClick={cancelReordering}
+                  disabled={isSavingOrder}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-[0.98] disabled:opacity-50"
+                >
+                  <X size={16} weight="bold" />
+                  Anulează
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleSaveOrder}
+                  disabled={isSavingOrder}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm bg-mesored text-white hover:bg-red-800 active:scale-[0.98] disabled:opacity-70"
+                >
+                  {isSavingOrder ? (
+                    <>
+                      <Spinner size={16} weight="bold" className="animate-spin" />
+                      Se salvează...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} weight="bold" />
+                      Salvează Ordinea
+                    </>
+                  )}
+                </button>
+              </>
+            ) : (
+              <button 
+                type="button"
+                onClick={startReordering}
+                disabled={categoryInstructions.length <= 1}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                title={categoryInstructions.length <= 1 ? "Sunt necesare cel puțin 2 instrucțiuni pentru reordonare" : "Activează reordonarea prin Drag & Drop"}
+              >
+                <ArrowsDownUp size={16} weight="duotone" className="text-mesored" />
+                Reordonare
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {isReordering && (
+        <div className="mb-3 px-4 py-2.5 bg-red-50 border border-mesored/20 text-mesored rounded-xl text-sm flex items-center gap-2">
+          <ArrowsDownUp size={18} weight="duotone" />
+          <span>Trageți de rândurile tabelului pentru a schimba ordinea instrucțiunilor din categoria <strong>{selectedCategory}</strong>, apoi apăsați <strong>Salvează Ordinea</strong>.</span>
+        </div>
+      )}
+
       <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-500">
             <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b border-gray-200">
               <tr>
+                {isReordering && <th className="px-4 py-4 w-12 text-center">#</th>}
                 <th className="px-6 py-4 font-semibold">Titlu</th>
                 <th className="px-6 py-4 font-semibold w-32">Categorie</th>
                 <th className="px-6 py-4 font-semibold w-32">Data</th>
@@ -71,11 +255,35 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredInstructions.map(inst => (
-                <tr key={inst.id} className="hover:bg-gray-50/50 transition-colors">
+              {displayedInstructions.map((inst, index) => (
+                <tr 
+                  key={inst.id} 
+                  draggable={isReordering}
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`transition-colors ${
+                    isReordering 
+                      ? 'cursor-grab active:cursor-grabbing hover:bg-red-50/50 select-none' 
+                      : 'hover:bg-gray-50/50'
+                  } ${draggedIndex === index ? 'opacity-30 bg-red-100' : ''} ${
+                    dragOverIndex === index && draggedIndex !== index ? 'border-t-2 border-mesored bg-red-50/30' : ''
+                  }`}
+                >
+                  {isReordering && (
+                    <td className="px-4 py-4 text-center text-gray-400">
+                      <div className="flex items-center justify-center gap-1">
+                        <DotsSixVertical size={20} weight="bold" className="text-gray-400 hover:text-mesored transition-colors" />
+                        <span className="text-xs font-bold text-gray-500">{index + 1}</span>
+                      </div>
+                    </td>
+                  )}
                   <td className="px-6 py-4 font-medium text-gray-900">
-                    {inst.title}
-                    {inst.videoUrl && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-mesolight text-mesored border border-mesored/20">VIDEO</span>}
+                    <div className="flex items-center gap-2">
+                      <span>{inst.title}</span>
+                      {inst.videoUrl && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-mesolight text-mesored border border-mesored/20">VIDEO</span>}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-2.5 py-1 bg-gray-100 rounded-md text-xs font-medium text-gray-700">{inst.category}</span>
@@ -84,18 +292,30 @@ const AdminDashboard = () => {
                     {new Date(inst.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
-                    <button onClick={() => handleEdit(inst.id)} className="inline-flex p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Editează">
-                      <Pencil size={16} weight="duotone" />
-                    </button>
-                    <button onClick={() => setDeleteModal({ isOpen: true, instructionId: inst.id })} className="inline-flex p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Șterge">
-                      <Trash size={16} weight="duotone" />
-                    </button>
+                    {isReordering ? (
+                      <span className="text-xs text-gray-400 italic">Mod reordonare</span>
+                    ) : (
+                      <>
+                        <button onClick={() => handleEdit(inst.id)} className="inline-flex p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Editează">
+                          <Pencil size={16} weight="duotone" />
+                        </button>
+                        <button onClick={() => setDeleteModal({ isOpen: true, instructionId: inst.id })} className="inline-flex p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Șterge">
+                          <Trash size={16} weight="duotone" />
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
-              {filteredInstructions.length === 0 && (
+              {displayedInstructions.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="text-center py-8 text-gray-500">Nu a fost găsită nicio instrucțiune conform căutării.</td>
+                  <td colSpan={isReordering ? 5 : 4} className="text-center py-8 text-gray-500">
+                    {searchQuery 
+                      ? "Nu a fost găsită nicio instrucțiune conform căutării." 
+                      : selectedCategory !== "Toate" 
+                        ? `Nu există instrucțiuni în categoria ${selectedCategory}.` 
+                        : "Nu există instrucțiuni disponibile."}
+                  </td>
                 </tr>
               )}
             </tbody>
