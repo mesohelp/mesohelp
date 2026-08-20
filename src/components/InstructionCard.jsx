@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Video } from 'lucide-react';
 
-const InstructionCard = ({ instruction, isReordering, dragProps }) => {
+const InstructionCard = ({ instruction, isReordering, isDragging, dragProps }) => {
   const navigate = useNavigate();
 
   const handleDelayedNavigation = (e) => {
@@ -19,7 +19,15 @@ const InstructionCard = ({ instruction, isReordering, dragProps }) => {
       {...dragProps}
       role="button"
       onClick={handleDelayedNavigation} 
-      className={`select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent] touch-pan-y bg-white border border-transparent rounded-2xl p-6 flex flex-col h-full shadow-sm hover:shadow-[0_0_15px_rgba(181,18,27,0.25)] hover:border-mesored active:scale-[0.97] transition-all duration-300 group ${isReordering ? 'cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-mesored opacity-90' : 'cursor-pointer'}`}
+      className={`select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent] touch-pan-y bg-white rounded-2xl p-6 flex flex-col h-full shadow-sm hover:shadow-[0_0_15px_rgba(181,18,27,0.25)] hover:border-mesored active:scale-[0.97] transition-all duration-300 group ${
+        isDragging 
+          ? 'opacity-50 border-dashed border-2 border-red-500 scale-[1.02] shadow-md ring-2 ring-red-200' 
+          : 'border border-transparent'
+      } ${
+        isReordering 
+          ? 'cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-mesored opacity-90' 
+          : 'cursor-pointer'
+      }`}
     >
       <div className="flex justify-between items-start mb-4">
         <span className="px-3 py-1 bg-gray-100 md:group-hover:bg-mesolight text-xs font-semibold text-gray-600 md:group-hover:text-mesored rounded-full transition-colors">

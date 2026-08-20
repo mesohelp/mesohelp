@@ -1,7 +1,9 @@
 import { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import InstructionForm from '../components/InstructionForm';
-import { Shield, Plus, Pencil, Trash, Spinner, DotsSixVertical, ArrowsDownUp, Check, X, Funnel } from '@phosphor-icons/react';
+import { Shield, Plus, Pencil, Trash, Spinner, DotsSixVertical, ArrowsDownUp, Check, X, Funnel, CaretDown } from '@phosphor-icons/react';
+
+const CATEGORY_OPTIONS = ["Toate", "Kiosk", "Casă", "KDS"];
 
 const AdminDashboard = () => {
   const { instructions, deleteInstruction, saveInstructionOrder, loading, searchQuery } = useContext(AppContext);
@@ -10,8 +12,9 @@ const AdminDashboard = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, instructionId: null });
 
-  // 1. Filtrarea pe Categorii
+  // 1. Filtrarea pe Categorii cu Custom Dropdown
   const [selectedCategory, setSelectedCategory] = useState("Toate");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // 2. Modul de Reordonare (Drag & Drop)
   const [isReordering, setIsReordering] = useState(false);
@@ -75,7 +78,6 @@ const AdminDashboard = () => {
     if (!isReordering) return;
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = 'move';
-    // Transparent or ghost styling
     if (e.dataTransfer.setData) {
       e.dataTransfer.setData('text/plain', index.toString());
     }
@@ -163,27 +165,65 @@ const AdminDashboard = () => {
 
       {/* Control Bar: Filtrare Categorii & Butoane Reordonare */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-4">
-        {/* Dropdown Filtrare Categorie */}
+        {/* Custom Dropdown Filtrare Categorie */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
             <Funnel size={18} weight="duotone" className="text-mesored" />
             <span>Categorie:</span>
           </div>
-          <select
-            value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value);
-              setIsReordering(false);
-              setReorderedList([]);
-            }}
-            disabled={isReordering}
-            className="bg-white border border-gray-200 text-gray-800 text-sm font-medium rounded-xl px-4 py-2 focus:ring-2 focus:ring-mesored/50 focus:border-mesored outline-none shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            <option value="Toate">Toate</option>
-            <option value="Kiosk">Kiosk</option>
-            <option value="Casă">Casă</option>
-            <option value="KDS">KDS</option>
-          </select>
+
+          <div className="relative">
+            <button
+              type="button"
+              disabled={isReordering}
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className={`flex items-center justify-between gap-3 bg-white border border-gray-200 text-gray-800 text-sm font-medium rounded-xl px-4 py-2 shadow-sm transition-all outline-none ${
+                isReordering 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : 'hover:bg-gray-50 hover:border-gray-300 cursor-pointer focus:ring-2 focus:ring-mesored/40 focus:border-mesored'
+              }`}
+            >
+              <span>{selectedCategory}</span>
+              <CaretDown 
+                size={14} 
+                weight="bold" 
+                className={`text-gray-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-mesored' : ''}`} 
+              />
+            </button>
+
+            {/* Custom Dropdown Menu */}
+            {isDropdownOpen && !isReordering && (
+              <>
+                <div 
+                  className="fixed inset-0 z-20" 
+                  onClick={() => setIsDropdownOpen(false)}
+                />
+                <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1.5 overflow-hidden animate-fade-in">
+                  {CATEGORY_OPTIONS.map(cat => (
+                    <div
+                      key={cat}
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setIsDropdownOpen(false);
+                        setIsReordering(false);
+                        setReorderedList([]);
+                      }}
+                      className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center justify-between ${
+                        selectedCategory === cat 
+                          ? 'bg-red-50 text-mesored font-semibold' 
+                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                    >
+                      <span>{cat}</span>
+                      {selectedCategory === cat && (
+                        <Check size={16} weight="bold" className="text-mesored" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Butoane Reordonare (Apar DOAR când o categorie specifică este selectată) */}

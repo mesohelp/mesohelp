@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import InstructionCard from '../components/InstructionCard';
@@ -23,9 +23,13 @@ const CategoryView = () => {
   const [localLoading, setLocalLoading] = useState(() => getCachedData().length === 0);
   
   const [isReordering, setIsReordering] = useState(false);
-  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [draggedCardId, setDraggedCardId] = useState(null);
   const [backupInstructions, setBackupInstructions] = useState([]);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
+
+  // Ref-uri pentru Drag & Drop în timp real
+  const dragItem = useRef(null);
+  const dragOverItem = useRef(null);
 
   useEffect(() => {
     const cachedData = getCachedData();
@@ -62,33 +66,102 @@ const CategoryView = () => {
     fetchData();
   }, [categoryName]);
 
+  // Keep localInstructions in sync when instructions change in context and not reordering
+  useEffect(() => {
+    if (instructions && instructions.length > 0 && !isReordering) {
+      const filtered = instructions
+        .filter(i => i?.category === categoryName)
+        .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+      if (filtered.length > 0) {
+        setLocalInstructions(filtered);
+      }
+    }
+  }, [instructions, categoryName, isReordering]);
+
   const safeSearchQuery = (searchQuery || "").toLowerCase();
   
-  const rawBase = instructions?.length > 0 
-    ? instructions.filter(i => i?.category === categoryName)
-    : localInstructions;
-
-  const baseInstructions = [...rawBase].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+  const baseInstructions = isReordering
+    ? localInstructions
+    : (instructions?.length > 0 
+        ? [...instructions.filter(i => i?.category === categoryName)].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+        : localInstructions);
 
   const displayInstructions = baseInstructions?.filter(inst =>
     inst?.title?.toLowerCase().includes(safeSearchQuery) || 
     inst?.content?.toLowerCase().includes(safeSearchQuery)
   ) || [];
 
+  // Handlers pentru Reordonare Drag & Drop în timp real
+  const handleStartReorder = () => {
+    const initialList = (instructions?.length > 0
+      ? instructions.filter(i => i?.category === categoryName)
+      : localInstructions
+    ).slice().sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+
+    setBackupInstructions(initialList);
+    setLocalInstructions(initialList);
+    setIsReordering(true);
+  };
+
+  const handleCancelReorder = () => {
+    setLocalInstructions(backupInstructions);
+    setIsReordering(false);
+    handleDragEnd();
+  };
+
   const handleSaveOrder = async () => {
     setIsSavingOrder(true);
     try {
-      const currentCategoryItems = instructions.filter(i => i?.category === categoryName);
       if (saveInstructionOrder) {
-        await saveInstructionOrder(currentCategoryItems);
+        await saveInstructionOrder(localInstructions);
       }
+      localStorage.setItem(cacheKey, JSON.stringify(localInstructions));
       setIsReordering(false);
+      handleDragEnd();
     } catch (error) {
       console.error("Eroare la salvarea ordinii în CategoryView:", error);
       alert("A apărut o eroare la salvarea ordinii.");
     } finally {
       setIsSavingOrder(false);
     }
+  };
+
+  const handleDragStart = (e, index, item) => {
+    if (!isReordering) return;
+    dragItem.current = index;
+    setDraggedCardId(item.id);
+    e.dataTransfer.effectAllowed = 'move';
+    if (e.dataTransfer.setData) {
+      e.dataTransfer.setData('text/plain', index.toString());
+    }
+  };
+
+  const handleDragEnter = (e, index) => {
+    if (!isReordering) return;
+    e.preventDefault();
+    if (dragItem.current === null || dragItem.current === index) return;
+
+    dragOverItem.current = index;
+
+    // Rescriere în timp real a array-ului local (swap/move element)
+    const updatedList = [...localInstructions];
+    const [draggedElement] = updatedList.splice(dragItem.current, 1);
+    updatedList.splice(index, 0, draggedElement);
+
+    dragItem.current = index;
+    setLocalInstructions(updatedList);
+  };
+
+  const handleDragOver = (e) => {
+    if (!isReordering) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnd = () => {
+    dragItem.current = null;
+    dragOverItem.current = null;
+    setDraggedCardId(null);
   };
 
   const isLoading = loading || localLoading;
@@ -117,10 +190,7 @@ const CategoryView = () => {
             {isReordering ? (
               <>
                 <button 
-                  onClick={() => {
-                    setInstructions(backupInstructions);
-                    setIsReordering(false);
-                  }} 
+                  onClick={handleCancelReorder} 
                   disabled={isSavingOrder}
                   className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
                 >
@@ -137,10 +207,7 @@ const CategoryView = () => {
               </>
             ) : (
               <button 
-                onClick={() => {
-                  setBackupInstructions([...instructions]);
-                  setIsReordering(true);
-                }} 
+                onClick={handleStartReorder} 
                 disabled={displayInstructions.length <= 1}
                 className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0 select-none bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -157,20 +224,16 @@ const CategoryView = () => {
             key={inst.id} 
             instruction={inst} 
             isReordering={isReordering}
+            isDragging={draggedCardId === inst.id}
             dragProps={{
               draggable: isReordering,
-              onDragStart: () => setDraggedIndex(index),
-              onDragOver: (e) => e.preventDefault(),
+              onDragStart: (e) => handleDragStart(e, index, inst),
+              onDragEnter: (e) => handleDragEnter(e, index),
+              onDragOver: handleDragOver,
+              onDragEnd: handleDragEnd,
               onDrop: (e) => {
                 e.preventDefault();
-                if (draggedIndex === null || draggedIndex === index) return;
-                const newItems = [...instructions];
-                const draggedGlobalIndex = newItems.findIndex(i => i.id === displayInstructions[draggedIndex].id);
-                const dropGlobalIndex = newItems.findIndex(i => i.id === displayInstructions[index].id);
-                const [draggedItem] = newItems.splice(draggedGlobalIndex, 1);
-                newItems.splice(dropGlobalIndex, 0, draggedItem);
-                setInstructions(newItems);
-                setDraggedIndex(null);
+                handleDragEnd();
               }
             }}
           />
