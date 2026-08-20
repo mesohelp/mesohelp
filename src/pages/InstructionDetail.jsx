@@ -80,7 +80,7 @@ const InstructionDetail = () => {
                 return (
                   <div 
                     key={section.id || index} 
-                    className="prose prose-lg max-w-none text-gray-600"
+                    className="max-w-none text-gray-700 leading-relaxed text-base md:text-lg [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:mb-4 [&_li]:mb-1 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_s]:line-through [&_p]:mb-3 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:mb-2 [&_blockquote]:border-l-4 [&_blockquote]:border-mesored [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-3 [&_a]:text-mesored [&_a]:underline"
                     dangerouslySetInnerHTML={{ __html: section.content }}
                   />
                 );
@@ -119,7 +119,7 @@ const InstructionDetail = () => {
             <>
               {instruction.content && (
                 <div 
-                  className="prose prose-lg max-w-none text-gray-600 mb-10"
+                  className="max-w-none text-gray-700 leading-relaxed mb-10 text-base md:text-lg [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:mb-4 [&_li]:mb-1 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_s]:line-through [&_p]:mb-3 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:mb-2 [&_blockquote]:border-l-4 [&_blockquote]:border-mesored [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-3 [&_a]:text-mesored [&_a]:underline"
                   dangerouslySetInnerHTML={{ __html: instruction.content }}
                 />
               )}

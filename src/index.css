@@ -71,3 +71,9 @@
 .ql-snow .ql-picker.ql-size .ql-picker-item::before {
   content: 'Normal';
 }
+
+/* Quill text alignment classes */
+.ql-align-center { text-align: center; }
+.ql-align-right { text-align: right; }
+.ql-align-justify { text-align: justify; }
+.ql-align-left { text-align: left; }
