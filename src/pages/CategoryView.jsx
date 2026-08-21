@@ -5,10 +5,22 @@ import InstructionCard from '../components/InstructionCard';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 const CategoryView = () => {
-  const { categoryName } = useParams();
+  const { categoryName: rawCategoryName } = useParams();
   const navigate = useNavigate();
   const { instructions, setInstructions, saveInstructionOrder, isAdmin, loading, searchQuery } = useContext(AppContext);
   
+  const decodedCategory = rawCategoryName ? decodeURIComponent(rawCategoryName) : '';
+  const isOmsOrb = decodedCategory.toUpperCase() === 'KDS' || decodedCategory.toLowerCase() === 'oms-orb' || decodedCategory === 'OMS/ORB';
+  const categoryName = isOmsOrb ? 'OMS/ORB' : decodedCategory;
+
+  const matchesCategory = (itemCategory) => {
+    if (!itemCategory) return false;
+    if (isOmsOrb) {
+      return itemCategory === 'OMS/ORB' || itemCategory === 'KDS' || itemCategory.toLowerCase() === 'oms-orb';
+    }
+    return itemCategory === categoryName;
+  };
+
   const cacheKey = `meso_inst_${categoryName}`;
   const getCachedData = () => {
     try {
@@ -48,7 +60,7 @@ const CategoryView = () => {
         if (Array.isArray(allData)) {
           setInstructions(allData);
           const filtered = allData
-            .filter(i => i?.category === categoryName)
+            .filter(i => matchesCategory(i?.category))
             .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
           setLocalInstructions(filtered);
           localStorage.setItem(cacheKey, JSON.stringify(filtered));
@@ -70,7 +82,7 @@ const CategoryView = () => {
   useEffect(() => {
     if (instructions && instructions.length > 0 && !isReordering) {
       const filtered = instructions
-        .filter(i => i?.category === categoryName)
+        .filter(i => matchesCategory(i?.category))
         .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
       if (filtered.length > 0) {
         setLocalInstructions(filtered);
@@ -83,7 +95,7 @@ const CategoryView = () => {
   const baseInstructions = isReordering
     ? localInstructions
     : (instructions?.length > 0 
-        ? [...instructions.filter(i => i?.category === categoryName)].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+        ? [...instructions.filter(i => matchesCategory(i?.category))].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
         : localInstructions);
 
   const displayInstructions = baseInstructions?.filter(inst =>
@@ -94,7 +106,7 @@ const CategoryView = () => {
   // Handlers pentru Reordonare Drag & Drop în timp real
   const handleStartReorder = () => {
     const initialList = (instructions?.length > 0
-      ? instructions.filter(i => i?.category === categoryName)
+      ? instructions.filter(i => matchesCategory(i?.category))
       : localInstructions
     ).slice().sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 

@@ -28,8 +28,8 @@ const Navbar = () => {
   let searchPlaceholder = "Caută în toate instrucțiunile...";
   const currentPath = decodeURIComponent(location.pathname.toLowerCase());
   
-  if (currentPath.includes('kds')) {
-    searchPlaceholder = "Caută instrucțiuni pentru KDS...";
+  if (currentPath.includes('kds') || currentPath.includes('oms') || currentPath.includes('orb')) {
+    searchPlaceholder = "Caută instrucțiuni pentru OMS/ORB...";
   } else if (currentPath.includes('kiosk')) {
     searchPlaceholder = "Caută instrucțiuni pentru Kiosk...";
   } else if (currentPath.includes('casa') || currentPath.includes('casă')) {

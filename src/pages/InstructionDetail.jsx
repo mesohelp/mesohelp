@@ -98,9 +98,9 @@ const InstructionDetail = () => {
           </button>
         ) : (
           <button 
-            onClick={() => instruction?.category ? navigate(`/category/${encodeURIComponent(instruction.category)}`) : navigate(-1)} 
+            onClick={() => instruction?.category ? navigate(`/category/${encodeURIComponent(instruction.category === 'KDS' ? 'OMS/ORB' : instruction.category)}`) : navigate(-1)} 
             className="flex items-center justify-center bg-white border border-gray-200 rounded-xl p-2 md:p-2.5 hover:bg-gray-50 transition-all shadow-sm text-gray-900 select-none [-webkit-touch-callout:none] active:scale-[0.97] w-fit"
-            title={instruction?.category ? `Înapoi la categoria ${instruction.category}` : "Înapoi"}
+            title={instruction?.category ? `Înapoi la categoria ${instruction.category === 'KDS' ? 'OMS/ORB' : instruction.category}` : "Înapoi"}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -111,7 +111,7 @@ const InstructionDetail = () => {
         <div className="p-8 md:p-10 border-b border-gray-100">
           <div className="flex items-center gap-3 mb-4">
             <span className="px-3 py-1 bg-gray-100 text-sm font-semibold text-gray-700 rounded-full">
-              {instruction.category}
+              {instruction.category === 'KDS' ? 'OMS/ORB' : instruction.category}
             </span>
             <span className="text-sm text-gray-400">
               {new Date(instruction.createdAt).toLocaleDateString()}
@@ -226,11 +226,11 @@ const InstructionDetail = () => {
               </button>
             ) : (
               <button
-                onClick={() => instruction?.category ? navigate(`/category/${encodeURIComponent(instruction.category)}`) : navigate(-1)}
+                onClick={() => instruction?.category ? navigate(`/category/${encodeURIComponent(instruction.category === 'KDS' ? 'OMS/ORB' : instruction.category)}`) : navigate(-1)}
                 className="inline-flex items-center gap-2 text-gray-600 hover:text-mesored font-medium text-sm transition-colors py-2 px-3 rounded-xl hover:bg-gray-50 active:scale-[0.98]"
               >
                 <ArrowLeft className="w-4 h-4 text-mesored" />
-                <span>Înapoi la categoria {instruction?.category}</span>
+                <span>Înapoi la categoria {instruction?.category === 'KDS' ? 'OMS/ORB' : instruction.category}</span>
               </button>
             )}
           </div>

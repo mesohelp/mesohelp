@@ -2,7 +2,7 @@ import { useContext, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import CategoryCard from '../components/CategoryCard';
 import InstructionCard from '../components/InstructionCard';
-import { Tablet, Monitor, Loader2 } from 'lucide-react';
+import { DeviceTablet, Desktop, Monitor } from '@phosphor-icons/react';
 
 const Home = () => {
   const { searchQuery, instructions, setInstructions } = useContext(AppContext);
@@ -20,7 +20,8 @@ const Home = () => {
           }
           const categories = {};
           allData.forEach(inst => {
-            const cat = inst.category;
+            const rawCat = inst.category;
+            const cat = rawCat === 'KDS' ? 'OMS/ORB' : rawCat;
             if (cat) {
               if (!categories[cat]) categories[cat] = [];
               categories[cat].push(inst);
@@ -76,20 +77,15 @@ const Home = () => {
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 animate-slide-up">
           <CategoryCard 
             title="Kiosk" 
-            icon={<Tablet className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" strokeWidth={1.5} />}
+            icon={<DeviceTablet className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" weight="regular" />}
           />
           <CategoryCard 
             title="Casă" 
-            icon={<Monitor className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" strokeWidth={1.5} />}
+            icon={<Desktop className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" weight="regular" />}
           />
           <CategoryCard 
-            title="KDS" 
-            icon={
-              <div className="flex gap-1">
-                <Monitor className="w-6 h-6 md:w-8 md:h-8 text-mesored transition-colors" strokeWidth={1.5} />
-                <Monitor className="w-6 h-6 md:w-8 md:h-8 text-mesored transition-colors" strokeWidth={1.5} />
-              </div>
-            }
+            title="OMS/ORB" 
+            icon={<Monitor className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" weight="regular" />}
           />
         </div>
       </div>

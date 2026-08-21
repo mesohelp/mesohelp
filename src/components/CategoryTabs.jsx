@@ -1,19 +1,20 @@
 import { Link, useLocation } from 'react-router-dom';
 
-const CATEGORIES = ['Kiosk', 'Casă', 'KDS'];
+const CATEGORIES = ['Kiosk', 'Casă', 'OMS/ORB'];
 
 const CategoryTabs = () => {
   const location = useLocation();
+  const currentCategory = decodeURIComponent(location.pathname.replace('/category/', ''));
 
   return (
     <div className="flex border-b border-gray-200 mb-8 overflow-x-auto shadow-sm">
       {CATEGORIES.map(cat => {
-        const isActive = location.pathname === `/category/${cat}`;
+        const isActive = currentCategory === cat || (cat === 'OMS/ORB' && (currentCategory === 'KDS' || currentCategory.toLowerCase() === 'oms-orb'));
         
         return (
           <Link
             key={cat}
-            to={`/category/${cat}`}
+            to={`/category/${encodeURIComponent(cat)}`}
             className={`
               px-8 py-4 text-sm whitespace-nowrap transition-all duration-300
               ${isActive 

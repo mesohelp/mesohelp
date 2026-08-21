@@ -14,7 +14,7 @@ const customSizes = ['8px', '10px', '12px', '14px', '16px', '18px', '20px', '24p
 Size.whitelist = customSizes;
 Quill.register(Size, true);
 
-const CATEGORIES = ['Kiosk', 'Casă', 'KDS'];
+const CATEGORIES = ['Kiosk', 'Casă', 'OMS/ORB'];
 
 const InstructionForm = ({ instructionId, onClose }) => {
   const { instructions, addInstruction, updateInstruction } = useContext(AppContext);
@@ -22,7 +22,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
   const inst = instructionId ? instructions.find(i => i.id === instructionId) : null;
   
   const [title, setTitle] = useState(inst ? inst.title : '');
-  const [category, setCategory] = useState(inst ? inst.category : 'Kiosk');
+  const [category, setCategory] = useState(inst ? (inst.category === 'KDS' ? 'OMS/ORB' : inst.category) : 'Kiosk');
   const [relatedInstructions, setRelatedInstructions] = useState(() => {
     if (inst && Array.isArray(inst.relatedInstructions)) {
       return inst.relatedInstructions;
@@ -351,7 +351,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
                             </div>
                             {item.category && (
                               <span className="text-[11px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md font-normal shrink-0">
-                                {item.category}
+                                {item.category === 'KDS' ? 'OMS/ORB' : item.category}
                               </span>
                             )}
                           </div>
@@ -580,7 +580,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
                       </h4>
                       {targetInst.category && (
                         <span className="inline-block mt-1 text-[11px] px-2 py-0.5 bg-gray-100 group-hover:bg-red-100/70 text-gray-600 group-hover:text-mesored rounded-md font-medium">
-                          {targetInst.category}
+                          {targetInst.category === 'KDS' ? 'OMS/ORB' : targetInst.category}
                         </span>
                       )}
                     </div>

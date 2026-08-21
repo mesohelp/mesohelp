@@ -5,7 +5,7 @@ const CategoryCard = ({ title, icon }) => {
 
   const handleDelayedNavigation = () => {
     setTimeout(() => {
-      navigate(`/category/${title}`);
+      navigate(`/category/${encodeURIComponent(title)}`);
     }, 200);
   };
 

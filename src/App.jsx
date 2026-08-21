@@ -39,6 +39,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/category/:categoryName" element={<CategoryView />} />
+            <Route path="/category/OMS/ORB" element={<CategoryView />} />
+            <Route path="/category/oms-orb" element={<Navigate to={`/category/${encodeURIComponent('OMS/ORB')}`} replace />} />
+            <Route path="/kds" element={<Navigate to={`/category/${encodeURIComponent('OMS/ORB')}`} replace />} />
+            <Route path="/oms-orb" element={<Navigate to={`/category/${encodeURIComponent('OMS/ORB')}`} replace />} />
             <Route path="/instruction/:id" element={<InstructionDetail />} />
             <Route path="/login" element={<AdminLogin />} />
             <Route 

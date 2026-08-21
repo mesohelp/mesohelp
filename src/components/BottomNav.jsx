@@ -1,21 +1,23 @@
 import { Link, useLocation } from 'react-router-dom';
-import { House, DeviceTablet, Desktop, HardDrives } from '@phosphor-icons/react';
+import { House, DeviceTablet, Desktop, Monitor } from '@phosphor-icons/react';
 
 const CATEGORIES = [
   { name: 'Acasă', path: '/', icon: House },
-  { name: 'Kiosk', path: '/category/Kiosk', icon: DeviceTablet },
-  { name: 'Casă', path: '/category/Casă', icon: Desktop },
-  { name: 'KDS', path: '/category/KDS', icon: HardDrives }
+  { name: 'Kiosk', path: `/category/${encodeURIComponent('Kiosk')}`, icon: DeviceTablet },
+  { name: 'Casă', path: `/category/${encodeURIComponent('Casă')}`, icon: Desktop },
+  { name: 'OMS/ORB', path: `/category/${encodeURIComponent('OMS/ORB')}`, icon: Monitor }
 ];
 
 const BottomNav = () => {
   const location = useLocation();
+  const currentPath = decodeURIComponent(location.pathname);
 
   return (
     <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 flex justify-around items-center pb-safe pt-2 pb-2 md:hidden">
       {CATEGORIES.map(cat => {
-        // Fix for active state: exact match for Home, includes for others or exact match
-        const isActive = decodeURIComponent(location.pathname) === cat.path;
+        const decodedCatPath = decodeURIComponent(cat.path);
+        const isActive = currentPath === decodedCatPath || 
+          (cat.name === 'OMS/ORB' && (currentPath === '/category/KDS' || currentPath.toLowerCase() === '/category/oms-orb' || currentPath === '/category/OMS/ORB'));
         const Icon = cat.icon;
         
         return (
@@ -27,7 +29,7 @@ const BottomNav = () => {
               ${isActive ? 'text-mesored' : 'text-gray-500 hover:text-mesored'}
             `}
           >
-            <Icon size={24} weight="duotone" />
+            <Icon size={24} weight="regular" />
             <span className="text-[10px] font-medium mt-1">{cat.name}</span>
           </Link>
         );

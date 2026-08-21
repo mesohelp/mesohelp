@@ -31,7 +31,7 @@ const InstructionCard = ({ instruction, isReordering, isDragging, dragProps }) =
     >
       <div className="flex justify-between items-start mb-4">
         <span className="px-3 py-1 bg-gray-100 md:group-hover:bg-mesolight text-xs font-semibold text-gray-600 md:group-hover:text-mesored rounded-full transition-colors">
-          {instruction.category}
+          {instruction.category === 'KDS' ? 'OMS/ORB' : instruction.category}
         </span>
         {instruction.videoUrl && (
           <div className="text-mesored bg-mesolight p-1.5 rounded-lg transition-colors">

@@ -3,7 +3,7 @@ import { AppContext } from '../context/AppContext';
 import InstructionForm from '../components/InstructionForm';
 import { Shield, Plus, Pencil, Trash, Spinner, DotsSixVertical, ArrowsDownUp, Check, X, Funnel, CaretDown } from '@phosphor-icons/react';
 
-const CATEGORY_OPTIONS = ["Toate", "Kiosk", "Casă", "KDS"];
+const CATEGORY_OPTIONS = ["Toate", "Kiosk", "Casă", "OMS/ORB"];
 
 const AdminDashboard = () => {
   const { instructions, deleteInstruction, saveInstructionOrder, loading, searchQuery } = useContext(AppContext);
@@ -25,7 +25,12 @@ const AdminDashboard = () => {
 
   // Filter instructions based on category
   const categoryInstructions = selectedCategory && selectedCategory !== "Toate"
-    ? instructions.filter(item => item.category === selectedCategory)
+    ? instructions.filter(item => {
+        if (selectedCategory === "OMS/ORB") {
+          return item.category === "OMS/ORB" || item.category === "KDS";
+        }
+        return item.category === selectedCategory;
+      })
     : instructions;
 
   // Sorted instructions by orderIndex
@@ -326,7 +331,7 @@ const AdminDashboard = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2.5 py-1 bg-gray-100 rounded-md text-xs font-medium text-gray-700">{inst.category}</span>
+                    <span className="px-2.5 py-1 bg-gray-100 rounded-md text-xs font-medium text-gray-700">{inst.category === 'KDS' ? 'OMS/ORB' : inst.category}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-xs">
                     {new Date(inst.createdAt).toLocaleDateString()}
