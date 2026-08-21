@@ -1,4 +1,4 @@
-import { useContext, useState, useMemo } from 'react';
+import { useContext, useState, useMemo, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
 import { Video, Image as ImageIcon, Type, Trash2, Loader2, Link2, Check, X, Search, ChevronDown, Plus } from 'lucide-react';
 import ReactQuill, { Quill } from 'react-quill';
@@ -43,6 +43,10 @@ const InstructionForm = ({ instructionId, onClose }) => {
   const [isReorderingSections, setIsReorderingSections] = useState(false);
   const [draggedSectionIndex, setDraggedSectionIndex] = useState(null);
   const [draggingSectionId, setDraggingSectionId] = useState(null);
+
+  // Ref-uri pentru Reordonare Secțiuni în timp real (Live Preview)
+  const dragSectionItem = useRef(null);
+  const dragOverSectionItem = useRef(null);
 
   // Configurare ReactQuill cu butonul custom 'insertInstruction'
   const quillModules = useMemo(() => ({
@@ -149,6 +153,25 @@ const InstructionForm = ({ instructionId, onClose }) => {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  const getExtension = (url, file) => {
+    if (file && file.name) {
+      const ext = file.name.split('.').pop();
+      if (ext && ext !== file.name) return ext.toUpperCase();
+    }
+    if (file && file.type) {
+      const subtype = file.type.split('/')[1];
+      if (subtype) return subtype.toUpperCase();
+    }
+    if (url && typeof url === 'string') {
+      const cleanUrl = url.split('?')[0].split('#')[0];
+      const ext = cleanUrl.split('.').pop();
+      if (ext && ext.length <= 5 && !ext.includes('/') && !ext.includes(':')) {
+        return ext.toUpperCase();
+      }
+    }
+    return '';
+  };
+
   const processFile = (file, id) => {
     if (file) {
       const previewUrl = URL.createObjectURL(file);
@@ -159,6 +182,45 @@ const InstructionForm = ({ instructionId, onClose }) => {
   const handleFileUpload = (e, id) => {
     const file = e.target.files && e.target.files[0];
     processFile(file, id);
+  };
+
+  // Handlers pentru Reordonarea Secțiunilor în timp real (Live Preview)
+  const handleSectionDragStart = (e, index) => {
+    if (!isReorderingSections) return;
+    dragSectionItem.current = index;
+    setDraggedSectionIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    if (e.dataTransfer.setData) {
+      e.dataTransfer.setData('text/plain', index.toString());
+    }
+  };
+
+  const handleSectionDragEnter = (e, index) => {
+    if (!isReorderingSections) return;
+    e.preventDefault();
+    if (dragSectionItem.current === null || dragSectionItem.current === index) return;
+
+    dragOverSectionItem.current = index;
+
+    const updatedSections = [...sections];
+    const [draggedItem] = updatedSections.splice(dragSectionItem.current, 1);
+    updatedSections.splice(index, 0, draggedItem);
+
+    dragSectionItem.current = index;
+    setDraggedSectionIndex(index);
+    setSections(updatedSections);
+  };
+
+  const handleSectionDragOver = (e) => {
+    if (!isReorderingSections) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleSectionDragEnd = () => {
+    dragSectionItem.current = null;
+    dragOverSectionItem.current = null;
+    setDraggedSectionIndex(null);
   };
 
   const handleSubmit = async (e) => {
@@ -399,21 +461,34 @@ const InstructionForm = ({ instructionId, onClose }) => {
         </div>
 
         <div className="space-y-4">
+          {isReorderingSections && (
+            <div className="p-3 bg-red-50 border border-mesored/20 text-mesored rounded-xl text-xs font-semibold flex items-center gap-2 animate-fade-in">
+              <span>Trage de secțiuni pentru a le schimba ordinea în timp real, apoi apasă pe <strong>Termină Reordonarea</strong>.</span>
+            </div>
+          )}
+
           {sections.map((section, index) => (
             <div 
               key={section.id} 
-              className={`relative p-4 border border-gray-200 rounded-xl bg-gray-50 group transition-all ${isReorderingSections ? 'cursor-grab opacity-90 ring-2 ring-blue-400' : ''}`}
+              className={`relative p-4 border rounded-xl transition-all duration-200 ${
+                isReorderingSections 
+                  ? 'cursor-grab active:cursor-grabbing select-none' 
+                  : 'border-gray-200 bg-gray-50 group'
+              } ${
+                isReorderingSections && (draggedSectionIndex === index || dragSectionItem.current === index)
+                  ? 'opacity-40 border-2 border-dashed border-red-500 bg-red-50 scale-[0.99] shadow-inner'
+                  : isReorderingSections 
+                    ? 'border-gray-300 bg-gray-50 hover:border-mesored/60 hover:bg-red-50/20' 
+                    : ''
+              }`}
               draggable={isReorderingSections}
-              onDragStart={() => setDraggedSectionIndex(index)}
-              onDragOver={(e) => e.preventDefault()}
+              onDragStart={(e) => handleSectionDragStart(e, index)}
+              onDragEnter={(e) => handleSectionDragEnter(e, index)}
+              onDragOver={handleSectionDragOver}
+              onDragEnd={handleSectionDragEnd}
               onDrop={(e) => {
                 e.preventDefault();
-                if (draggedSectionIndex === null || draggedSectionIndex === index) return;
-                const newSections = [...sections];
-                const [draggedItem] = newSections.splice(draggedSectionIndex, 1);
-                newSections.splice(index, 0, draggedItem);
-                setSections(newSections);
-                setDraggedSectionIndex(null);
+                handleSectionDragEnd();
               }}
             >
               <button 
@@ -486,6 +561,11 @@ const InstructionForm = ({ instructionId, onClose }) => {
                   ) : (
                     <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-white p-2 text-center">
                       <img src={section.content} alt="Preview" className="max-h-64 object-contain inline-block w-auto" />
+                      {getExtension(section.content, section.file) && (
+                        <span className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider backdrop-blur-xs shadow-xs pointer-events-none z-10">
+                          {getExtension(section.content, section.file)}
+                        </span>
+                      )}
                     </div>
                   )}
                   <input type="text" placeholder="Adaugă o descriere opțională..." value={section.description || ''} onChange={(e) => updateSectionDescription(section.id, e.target.value)} className="w-full mt-3 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-mesored focus:ring-2 focus:ring-mesored/50" />
@@ -539,6 +619,11 @@ const InstructionForm = ({ instructionId, onClose }) => {
                   ) : (
                     <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-black">
                       <video src={section.content} controls className="w-full h-48 object-contain" />
+                      {getExtension(section.content, section.file) && (
+                        <span className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider backdrop-blur-xs shadow-xs pointer-events-none z-10">
+                          {getExtension(section.content, section.file)}
+                        </span>
+                      )}
                     </div>
                   )}
                   <input type="text" placeholder="Adaugă o descriere opțională..." value={section.description || ''} onChange={(e) => updateSectionDescription(section.id, e.target.value)} className="w-full mt-3 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-mesored focus:ring-2 focus:ring-mesored/50" />
