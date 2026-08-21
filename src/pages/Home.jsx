@@ -2,7 +2,7 @@ import { useContext, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import CategoryCard from '../components/CategoryCard';
 import InstructionCard from '../components/InstructionCard';
-import { DeviceTablet, Desktop, Monitor } from '@phosphor-icons/react';
+import { Desktop, Monitor } from '@phosphor-icons/react';
 
 const Home = () => {
   const { searchQuery, instructions, setInstructions } = useContext(AppContext);
@@ -77,7 +77,22 @@ const Home = () => {
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 animate-slide-up">
           <CategoryCard 
             title="Kiosk" 
-            icon={<DeviceTablet className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" weight="regular" />}
+            icon={
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth={1.5} 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors"
+              >
+                <rect x="6" y="2" width="12" height="13" rx="1" />
+                <path d="M7 15h10v7H7z" />
+                <path d="M10 19h4" />
+              </svg>
+            }
           />
           <CategoryCard 
             title="Casă" 
@@ -85,7 +100,12 @@ const Home = () => {
           />
           <CategoryCard 
             title="OMS/ORB" 
-            icon={<Monitor className="w-8 h-8 md:w-12 md:h-12 text-mesored transition-colors" weight="regular" />}
+            icon={
+              <div className="relative w-10 h-10 md:w-14 md:h-14 text-mesored flex items-center justify-center">
+                <Monitor className="absolute top-0 right-0 w-6 h-6 md:w-8 md:h-8" weight="regular" />
+                <Monitor className="absolute bottom-0.5 md:bottom-1 left-0 w-6 h-6 md:w-8 md:h-8" weight="regular" />
+              </div>
+            }
           />
         </div>
       </div>
