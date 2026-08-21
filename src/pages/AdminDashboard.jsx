@@ -1,16 +1,25 @@
 import { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import InstructionForm from '../components/InstructionForm';
-import { Shield, Plus, Pencil, Trash, Spinner, DotsSixVertical, ArrowsDownUp, Check, X, Funnel, CaretDown } from '@phosphor-icons/react';
+import { Shield, Plus, Pencil, Trash, Copy, Spinner, DotsSixVertical, ArrowsDownUp, Check, X, Funnel, CaretDown } from '@phosphor-icons/react';
 
 const CATEGORY_OPTIONS = ["Toate", "Kiosk", "Casă", "OMS/ORB"];
+const DUPLICATE_CATEGORY_OPTIONS = ["Kiosk", "Casă", "OMS/ORB"];
 
 const AdminDashboard = () => {
-  const { instructions, deleteInstruction, saveInstructionOrder, loading, searchQuery } = useContext(AppContext);
+  const { instructions, addInstruction, deleteInstruction, saveInstructionOrder, loading, searchQuery } = useContext(AppContext);
   
   const [editingId, setEditingId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, instructionId: null });
+
+  // Stări pentru Modalul de Duplicare
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+  const [instructionToDuplicate, setInstructionToDuplicate] = useState(null);
+  const [duplicateTitle, setDuplicateTitle] = useState('');
+  const [duplicateCategory, setDuplicateCategory] = useState('Kiosk');
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const [isDupCategoryDropdownOpen, setIsDupCategoryDropdownOpen] = useState(false);
 
   // 1. Filtrarea pe Categorii cu Custom Dropdown
   const [selectedCategory, setSelectedCategory] = useState("Toate");
@@ -136,6 +145,45 @@ const AdminDashboard = () => {
   const handleNew = () => {
     setEditingId(null);
     setIsFormOpen(true);
+  };
+
+  const handleOpenDuplicate = (inst) => {
+    setInstructionToDuplicate(inst);
+    setDuplicateTitle(`Copie - ${inst.title || ''}`);
+    const initialCat = inst.category === 'KDS' ? 'OMS/ORB' : (inst.category || 'Kiosk');
+    setDuplicateCategory(initialCat);
+    setIsDupCategoryDropdownOpen(false);
+    setIsDuplicateModalOpen(true);
+  };
+
+  const handleConfirmDuplicate = async (e) => {
+    if (e) e.preventDefault();
+    if (!instructionToDuplicate) return;
+    setIsDuplicating(true);
+    try {
+      const { id, ...baseData } = instructionToDuplicate;
+      const clonedSections = baseData.sections ? JSON.parse(JSON.stringify(baseData.sections)) : [];
+      const clonedRelated = baseData.relatedInstructions ? JSON.parse(JSON.stringify(baseData.relatedInstructions)) : [];
+
+      const newPayload = {
+        ...baseData,
+        title: duplicateTitle.trim(),
+        category: duplicateCategory,
+        sections: clonedSections,
+        relatedInstructions: clonedRelated,
+        createdAt: Date.now()
+      };
+
+      await addInstruction(newPayload);
+      setIsDuplicateModalOpen(false);
+      setInstructionToDuplicate(null);
+      setDuplicateTitle('');
+    } catch (error) {
+      console.error("Eroare la duplicarea instrucțiunii:", error);
+      alert("A apărut o eroare la duplicarea instrucțiunii.");
+    } finally {
+      setIsDuplicating(false);
+    }
   };
 
   const confirmDelete = () => {
@@ -341,6 +389,9 @@ const AdminDashboard = () => {
                       <span className="text-xs text-gray-400 italic">Mod reordonare</span>
                     ) : (
                       <>
+                        <button onClick={() => handleOpenDuplicate(inst)} className="inline-flex p-2 text-gray-400 hover:text-mesored hover:bg-red-50 rounded-lg transition-colors" title="Duplică Instrucțiunea">
+                          <Copy size={16} weight="duotone" />
+                        </button>
                         <button onClick={() => handleEdit(inst.id)} className="inline-flex p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Editează">
                           <Pencil size={16} weight="duotone" />
                         </button>
@@ -389,6 +440,108 @@ const AdminDashboard = () => {
                 Da, șterge
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Duplicare Instrucțiune */}
+      {isDuplicateModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-100 animate-slide-up">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-2 bg-red-50 text-mesored rounded-xl">
+                <Copy size={20} weight="duotone" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Duplică Instrucțiunea</h3>
+                <p className="text-xs text-gray-500">Creează o copie a acestei instrucțiuni</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmDuplicate} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-semibold text-gray-700">Titlu Nou</label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={duplicateTitle}
+                  onChange={(e) => setDuplicateTitle(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:border-mesored focus:ring-2 focus:ring-mesored/50 transition-all outline-none"
+                  placeholder="Titlul copiei..."
+                />
+              </div>
+
+              <div className="space-y-1.5 relative">
+                <label className="block text-sm font-semibold text-gray-700">Categorie Nouă</label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsDupCategoryDropdownOpen(!isDupCategoryDropdownOpen)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-left text-sm font-medium text-gray-800 focus:bg-white focus:border-mesored focus:ring-2 focus:ring-mesored/50 transition-all outline-none flex justify-between items-center"
+                  >
+                    <span>{duplicateCategory}</span>
+                    <CaretDown 
+                      size={14} 
+                      weight="bold" 
+                      className={`text-gray-500 transition-transform duration-200 ${isDupCategoryDropdownOpen ? 'rotate-180 text-mesored' : ''}`} 
+                    />
+                  </button>
+
+                  {isDupCategoryDropdownOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-20" 
+                        onClick={() => setIsDupCategoryDropdownOpen(false)} 
+                      />
+                      <div className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1.5 overflow-hidden animate-fade-in">
+                        {DUPLICATE_CATEGORY_OPTIONS.map(cat => (
+                          <div
+                            key={cat}
+                            onClick={() => {
+                              setDuplicateCategory(cat);
+                              setIsDupCategoryDropdownOpen(false);
+                            }}
+                            className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center justify-between ${
+                              duplicateCategory === cat 
+                                ? 'bg-red-50 text-mesored font-semibold' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <span>{cat}</span>
+                            {duplicateCategory === cat && (
+                              <Check size={16} weight="bold" className="text-mesored" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  disabled={isDuplicating}
+                  onClick={() => {
+                    setIsDuplicateModalOpen(false);
+                    setInstructionToDuplicate(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-xl transition-colors font-medium text-sm disabled:opacity-50"
+                >
+                  Anulează
+                </button>
+                <button
+                  type="submit"
+                  disabled={isDuplicating || !duplicateTitle.trim()}
+                  className="px-4 py-2 bg-mesored text-white rounded-xl hover:bg-red-800 transition-colors font-medium text-sm shadow-md shadow-red-200 flex items-center gap-2 disabled:opacity-70"
+                >
+                  {isDuplicating && <Spinner size={16} className="animate-spin" />}
+                  {isDuplicating ? "Se duplică..." : "Confirmă Duplicarea"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
