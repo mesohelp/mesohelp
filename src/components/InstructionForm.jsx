@@ -42,6 +42,7 @@ const InstructionForm = ({ instructionId, onClose }) => {
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isReorderingSections, setIsReorderingSections] = useState(false);
   const [draggedSectionIndex, setDraggedSectionIndex] = useState(null);
+  const [draggingSectionId, setDraggingSectionId] = useState(null);
 
   // Configurare ReactQuill cu butonul custom 'insertInstruction'
   const quillModules = useMemo(() => ({
@@ -148,12 +149,16 @@ const InstructionForm = ({ instructionId, onClose }) => {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleFileUpload = (e, id) => {
-    const file = e.target.files[0];
+  const processFile = (file, id) => {
     if (file) {
       const previewUrl = URL.createObjectURL(file);
       setSections(sections.map(s => s.id === id ? { ...s, file: file, content: previewUrl } : s));
     }
+  };
+
+  const handleFileUpload = (e, id) => {
+    const file = e.target.files && e.target.files[0];
+    processFile(file, id);
   };
 
   const handleSubmit = async (e) => {
@@ -446,8 +451,36 @@ const InstructionForm = ({ instructionId, onClose }) => {
                         className="hidden" 
                         onChange={(e) => handleFileUpload(e, section.id)} 
                       />
-                      <label htmlFor={`file-${section.id}`} className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-mesored hover:bg-white transition-colors">
-                        <span className="text-gray-500 font-medium">Apasă pentru a încărca o imagine</span>
+                      <label 
+                        htmlFor={`file-${section.id}`} 
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDraggingSectionId(section.id);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDraggingSectionId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDraggingSectionId(null);
+                          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                            const file = e.dataTransfer.files[0];
+                            processFile(file, section.id);
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                          draggingSectionId === section.id 
+                            ? 'bg-red-50 border-red-500 text-mesored scale-[1.01]' 
+                            : 'border-gray-300 hover:border-mesored hover:bg-white bg-transparent'
+                        }`}
+                      >
+                        <span className={`font-medium transition-colors ${draggingSectionId === section.id ? 'text-mesored' : 'text-gray-500'}`}>
+                          {draggingSectionId === section.id ? 'Eliberează imaginea aici' : 'Apasă sau trage o imagine aici'}
+                        </span>
                       </label>
                     </>
                   ) : (
@@ -471,8 +504,36 @@ const InstructionForm = ({ instructionId, onClose }) => {
                         className="hidden" 
                         onChange={(e) => handleFileUpload(e, section.id)} 
                       />
-                      <label htmlFor={`file-${section.id}`} className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-mesored hover:bg-white transition-colors">
-                        <span className="text-gray-500 font-medium">Apasă pentru a încărca un video (.mp4, .webm)</span>
+                      <label 
+                        htmlFor={`file-${section.id}`} 
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDraggingSectionId(section.id);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDraggingSectionId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDraggingSectionId(null);
+                          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                            const file = e.dataTransfer.files[0];
+                            processFile(file, section.id);
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                          draggingSectionId === section.id 
+                            ? 'bg-red-50 border-red-500 text-mesored scale-[1.01]' 
+                            : 'border-gray-300 hover:border-mesored hover:bg-white bg-transparent'
+                        }`}
+                      >
+                        <span className={`font-medium transition-colors ${draggingSectionId === section.id ? 'text-mesored' : 'text-gray-500'}`}>
+                          {draggingSectionId === section.id ? 'Eliberează fișierul video aici' : 'Apasă sau trage un video (.mp4, .webm) aici'}
+                        </span>
                       </label>
                     </>
                   ) : (
